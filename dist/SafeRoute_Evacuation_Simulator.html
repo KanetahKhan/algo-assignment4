@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#143d38">
+  <title>SafeRoute · Earthquake Evacuation Simulator</title>
+  <style>
+:root{--bg:#f5f6f2;--paper:#fff;--ink:#203730;--muted:#758078;--line:#e5e9e2;--green:#215f50;--green-dark:#163f36;--green-pale:#eaf3ec;--orange:#df7844;--orange-pale:#fff0e5;--red:#c8514a;--shadow:0 3px 18px #20373005;--radius:16px;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg);font-synthesis:none}
+*{box-sizing:border-box}body{margin:0;font-size:14px}button,input,select{font:inherit}button,a,input,select{touch-action:manipulation}button{cursor:pointer}button:disabled{opacity:.48;cursor:not-allowed}a{color:inherit;text-decoration:none}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:3px solid #e3a563;outline-offset:3px}h1,h2,h3,p{margin:0}h2{font-size:18px;font-weight:650;letter-spacing:-.35px}h3{font-size:18px;letter-spacing:-.3px;line-height:1.4}button{transition:background .15s,transform .15s}button:active:not(:disabled){transform:translateY(1px)}[hidden]{display:none!important}
+.topbar{height:83px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 40px;background:#fff}.brand{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:750;letter-spacing:-.8px}.brand-mark{width:39px;height:43px;border-radius:12px;background:var(--green);display:grid;place-items:center}.brand-mark svg{width:24px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.brand-sub{display:block;font-size:8px;letter-spacing:2.2px;color:var(--muted);margin-top:2px}.header-right{display:flex;align-items:center;gap:24px}.offline-pill{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}.offline-pill i{width:6px;height:6px;background:#589577;border-radius:50%}.button{border:0;border-radius:9px;padding:11px 15px;display:inline-flex;justify-content:center;align-items:center;gap:8px;font-weight:600;font-size:13px;line-height:1.25;min-height:40px}.primary{background:var(--green);color:white}.primary:hover:not(:disabled){background:var(--green-dark)}.secondary{background:white;border:1px solid var(--line);color:var(--ink)}.secondary:hover:not(:disabled){background:var(--bg)}.quiet{background:transparent;color:var(--muted)}.quiet:hover:not(:disabled){background:var(--green-pale);color:var(--green)}.small{font-size:11px;min-height:35px;padding:9px 11px}.full{width:100%}.danger{color:var(--red)}main{max-width:1540px;margin:auto;padding:30px 40px 0}.page-heading{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:27px}.eyebrow{font-size:9px;letter-spacing:1.9px;font-weight:650;color:var(--muted);margin-bottom:9px}h1{font-size:35px;letter-spacing:-1.5px;line-height:1.2;font-weight:620}.subtitle{font-size:13px;margin-top:10px;color:var(--muted);line-height:1.5}.simulation-badge{border:1px solid var(--line);border-radius:6px;font-size:9px;letter-spacing:1.6px;padding:9px 11px;color:var(--muted);white-space:nowrap}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}.metric{padding:18px 22px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);min-height:132px;display:flex;flex-direction:column;box-shadow:var(--shadow)}.metric.highlighted{background:var(--green-dark);color:#fff;border-color:var(--green-dark)}.metric-label{font-size:11px;display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);margin-bottom:9px}.metric-icon{font-size:19px;color:#a5ada5;line-height:1}.metric strong{font-size:33px;letter-spacing:-1.4px;font-weight:650;line-height:1.2}.metric>span{font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5}.highlighted .metric-label,.highlighted>span,.highlighted .metric-icon{color:#c2d8ca}.workspace{display:grid;grid-template-columns:278px minmax(0,1fr);gap:22px;align-items:start}.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.control-panel{padding:23px 22px}.section-title{display:flex;align-items:center;gap:9px;margin-bottom:20px}.section-title h2{font-size:14px;letter-spacing:-.15px}.step-number{font-size:9px;width:22px;height:22px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--muted)}label{font-size:11px;font-weight:600;display:block;margin-bottom:8px}select,input[type=text],input[type=number]{background:white;border:1px solid #dfe5dc;border-radius:7px;color:var(--ink);padding:10px;font-size:12px;width:100%;min-height:38px}select{cursor:pointer}input[type=range]{accent-color:var(--green);width:100%;height:18px;margin:7px 0;cursor:pointer}input[type=checkbox]{accent-color:var(--green)}.hint{font-size:11px;color:var(--muted);line-height:1.65}.description{margin:11px 0 20px;min-height:68px}.label-row{display:flex;align-items:center;justify-content:space-between}.label-row label{margin:0}.label-row output{font-size:11px;font-weight:650;color:var(--green);background:var(--green-pale);padding:5px 7px;border-radius:5px}.range-labels{display:flex;justify-content:space-between;color:#98a094;font-size:9px;margin-bottom:20px}.divider{height:1px;background:var(--line);margin:18px 0 22px}.inspector{margin-top:15px}.inspector-name{font-size:14px;font-weight:650;margin-bottom:5px}.inspector-kicker{font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:8px}.inspector .button{margin-top:11px}.field-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px}.field-pair label{font-size:10px}.status-toggle{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:9px;padding:11px;margin-top:11px;font-size:11px}.status-toggle label{margin:0}.status-toggle input{width:16px;height:16px;cursor:pointer}.data-actions{display:flex;gap:6px;justify-content:space-between}.tiny{font-size:9px;margin-top:12px}.map-card{overflow:hidden}.map-heading{display:flex;align-items:center;justify-content:space-between;padding:22px 25px 16px;gap:12px}.map-heading .eyebrow{font-size:8px;letter-spacing:1.5px;margin-bottom:5px}.chip{font-size:10px;color:var(--muted);padding:6px 10px;border-radius:6px;background:var(--bg);white-space:nowrap}.map-toolbar{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:0 25px 14px}.legend{display:flex;gap:17px;align-items:center;font-size:9px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:5px}.legend i{display:inline-block;flex-shrink:0}.origin-dot{width:7px;height:7px;border-radius:50%;background:var(--orange)}.shelter-dot{width:7px;height:7px;border-radius:2px;background:var(--green)}.blocked-line{width:14px;border-top:2px dashed var(--red)}.route-picker{display:flex;align-items:center;gap:6px;white-space:nowrap;color:var(--muted);font-size:10px;margin:0;font-weight:400}.route-picker select{width:140px;min-height:30px;padding:6px;font-size:10px}.map-wrap{position:relative;background:#f9faf6;border-block:1px solid #eef0e8}.map-wrap svg{display:block;width:100%;max-height:550px;min-height:330px}.map-note{position:absolute;top:14px;left:19px;border:1px solid #e5e9dc;background:#ffffffeb;color:#748171;border-radius:5px;font-size:9px;padding:7px 9px;pointer-events:none}.road-hit{cursor:pointer}.node{cursor:pointer}.node-label{font-size:11px;font-weight:600;fill:#45594d;paint-order:stroke;stroke:#f9faf6;stroke-width:4;stroke-linejoin:round}.node-count{font-size:9px;fill:#82917e;paint-order:stroke;stroke:#f9faf6;stroke-width:3}.road-label{font-size:9px;fill:#778671;font-weight:550;pointer-events:none}.route-summary{padding:14px 24px;font-size:11px;line-height:1.7;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start;min-height:55px}.route-dot{background:var(--green);width:7px;height:7px;border-radius:50%;margin-top:6px;flex-shrink:0}.route-summary strong{font-weight:650}.route-summary small{color:var(--muted);display:block;font-size:10px}.playback{display:flex;align-items:center;gap:15px;padding:19px 24px}.play-button{width:37px;height:37px;border-radius:50%;border:1px solid var(--line);background:var(--green);color:white;font-size:11px;flex-shrink:0}.timeline{flex:1}.timeline-label{display:flex;align-items:center;justify-content:space-between;gap:10px}.timeline-label strong{font-size:10px;font-weight:650}.timeline-label span{font-size:10px;color:var(--muted)}.timeline input{margin:3px 0 0}.playback>select{width:55px;min-height:30px;padding:7px;font-size:11px}.results-card{margin-top:22px;overflow:hidden}.results-top{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:0 23px;border-bottom:1px solid var(--line)}.tabs{display:flex;gap:24px}.tab{color:var(--muted);background:transparent;border:0;border-bottom:2px solid transparent;font-weight:550;padding:20px 0;font-size:12px;white-space:nowrap}.tab.active{border-bottom-color:var(--green);color:var(--green)}.tab-panel{padding:25px}.summary-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:35px}.mini-label{font-size:9px;font-weight:650;color:var(--muted);letter-spacing:1.2px;display:block;margin-bottom:9px}.result-subtitle{font-size:11px;color:var(--muted);margin-top:7px;line-height:1.6}.bar-chart{height:118px;display:flex;align-items:flex-end;gap:5px;border-bottom:1px solid var(--line);margin-top:20px;padding:0 0 0}.bar-column{height:100%;flex:1;display:flex;align-items:flex-end;position:relative;min-width:2px}.bar{width:100%;background:#c1d8c6;border-radius:3px 3px 0 0;min-height:1px;transition:height .25s}.bar-column:last-child .bar{background:var(--green)}.chart-axis{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:8px}.shelter-row{margin-top:16px}.shelter-label{display:flex;justify-content:space-between;font-size:11px;gap:10px;margin-bottom:8px}.shelter-label span{color:var(--muted)}.progress-track{height:6px;background:#edf1e9;border-radius:5px;overflow:hidden}.progress-fill{height:100%;background:#87aa91;border-radius:5px}.comparison{margin-top:22px;border-radius:8px;padding:11px 14px;background:var(--green-pale);color:var(--green);font-size:11px;line-height:1.6}.comparison.warning{background:var(--orange-pale);color:#9a5b37}.empty-state{padding:38px 15px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8}.empty-state strong{display:block;font-size:18px;font-weight:600;color:var(--ink)}.table-wrap{overflow-x:auto;margin-top:18px}.table-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:28px}table{width:100%;border-collapse:collapse;text-align:left;font-size:11px}th{font-size:9px;font-weight:600;letter-spacing:.55px;text-transform:uppercase;color:var(--muted);background:#f7f9f4;padding:11px 12px;white-space:nowrap}td{padding:12px;border-bottom:1px solid #eef1e9;line-height:1.55}td .button{margin:0;min-height:28px;padding:5px 9px;font-size:10px}.tag{display:inline-flex;border-radius:4px;padding:3px 6px;font-size:9px;background:var(--green-pale);color:var(--green);white-space:nowrap}.tag.closed{background:#fbeae6;color:var(--red)}.algorithm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.algorithm-block{border:1px solid var(--line);padding:20px;border-radius:10px}.algorithm-block h3{font-size:16px}.algorithm-block p{font-size:11px;line-height:1.7;color:var(--muted);margin:10px 0}.trace{font-family:Consolas,monospace;font-size:11px;color:var(--green);line-height:1.9;background:var(--bg);padding:10px;border-radius:6px;overflow-wrap:anywhere}.formula{font-family:Consolas,monospace;color:var(--green);font-size:11px;line-height:1.7}.guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:45px}.guide-list{padding-left:18px;font-size:12px;color:var(--muted);line-height:1.85;margin:15px 0}.guide-list li{margin:9px 0}.guide-list strong{color:var(--ink);font-weight:600}.demo-callout{background:var(--green-pale);border-radius:12px;padding:22px;margin:18px 0;display:grid;grid-template-columns:250px 1fr;gap:25px}.demo-callout p{font-size:12px;line-height:1.9;color:#4b6d59}.editor-top{display:flex;justify-content:space-between;align-items:center;gap:12px}.editor-buttons{display:flex;gap:8px}.editor-top h3{font-size:16px}footer{display:flex;justify-content:space-between;gap:15px;padding:25px 0;color:#929b90;font-size:10px}footer strong{font-weight:600;color:#6c7e6b}footer i{margin:0 9px;font-style:normal}#message{padding:12px 16px;border-radius:9px;background:var(--green-pale);border:1px solid #dbe8d8;margin-bottom:20px;font-size:12px;line-height:1.6}#message.error{background:#fff0eb;border-color:#f1d5ca;color:#a04334}dialog{border:1px solid var(--line);border-radius:16px;padding:25px;width:min(440px,calc(100vw - 30px));color:var(--ink);box-shadow:0 25px 100px #163f3630}dialog::backdrop{background:#17332c55;backdrop-filter:blur(3px)}.dialog-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.dialog-heading h2{font-size:20px}#dialog-fields>label{margin-top:15px}.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:23px}.form-error{color:var(--red);font-size:11px;margin-top:12px;line-height:1.6}.noscript{background:#fff0eb;padding:20px;text-align:center}.mono{font-family:Consolas,monospace}.busy{animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.5}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(min-width:1500px){.map-wrap svg{min-height:440px}}
+@media(max-width:1100px){main{padding:25px 22px 0}.topbar{padding:0 24px}.workspace{grid-template-columns:255px minmax(0,1fr);gap:16px}.control-panel{padding:20px 18px}.metrics{gap:12px}.metric{padding:17px}.map-toolbar{flex-wrap:wrap;gap:12px}.map-wrap svg{min-height:300px}.tabs{gap:18px}.summary-grid{gap:25px}.algorithm-grid{grid-template-columns:1fr}.algorithm-block{display:block}.guide-grid{gap:25px}}
+@media(max-width:760px){.topbar{height:70px;padding:0 17px}.brand{font-size:20px}.header-right{gap:8px}.offline-pill{display:none}.page-heading{display:block}.simulation-badge{display:none}main{padding:23px 15px 0}h1{font-size:29px}.subtitle{font-size:12px}.metrics{grid-template-columns:1fr 1fr;gap:10px}.metric{min-height:123px;padding:16px}.metric strong{font-size:29px}.metric-label{font-size:10px}.metric>span{font-size:9px}.workspace{display:flex;flex-direction:column;gap:17px}.control-panel{width:100%;display:block}.description{min-height:0}.map-card{width:100%}.map-heading{padding:19px 17px 14px}.map-toolbar{padding-inline:17px}.map-wrap svg{min-height:260px}.map-note{top:9px;left:10px;font-size:8px}.map-heading .chip{font-size:9px;padding:5px}.map-heading h2{font-size:16px}.legend{font-size:8px;gap:12px}.route-summary{padding:13px 17px}.playback{padding:15px;gap:10px}.timeline-label span{font-size:9px}.results-top{padding:0 15px;flex-wrap:wrap;gap:0}.tabs{overflow-x:auto;width:100%;gap:20px}.tab{font-size:11px;padding-block:17px}.results-top>.button{margin-bottom:12px}.tab-panel{padding:19px 16px}.summary-grid,.guide-grid,.demo-callout{grid-template-columns:1fr;gap:24px}.guide-grid{gap:15px}.demo-callout{padding:19px}.editor-top{align-items:flex-start;flex-direction:column}footer{font-size:9px;line-height:1.7;flex-direction:column;gap:5px}.table-heading{gap:10px;align-items:flex-start;flex-direction:column}.map-toolbar .route-picker{width:100%;justify-content:flex-end}}
+
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 18V9a4 4 0 0 1 8 0v6a3 3 0 0 0 6 0V6M16 9l3-3 3 3"/></svg></span><span>SafeRoute<span class="brand-sub">EVACUATION LAB</span></span></a>
+    <div class="header-right"><span class="offline-pill"><i></i> Works offline</span><button class="button quiet" id="help-button">How it works <span aria-hidden="true">↗</span></button></div>
+  </header>
+  <main>
+    <div class="page-heading"><div><p class="eyebrow">CSE 4403 / ALGORITHMS PROJECT</p><h1>A clearer path to safety.</h1><p class="subtitle">Explore how damaged roads, travel time, and shelter space shape an evacuation.</p></div><span class="simulation-badge">SIMULATED DISTRICT</span></div>
+    <div id="message" role="status" aria-live="polite" hidden></div>
+    <section class="metrics" aria-label="Evacuation results">
+      <article class="metric"><div class="metric-label">People to evacuate <span class="metric-icon">◎</span></div><strong id="metric-population">180</strong><span id="population-caption">Across 3 residential areas</span></article>
+      <article class="metric highlighted"><div class="metric-label" id="evacuated-label">Evacuated by deadline <span class="metric-icon">↗</span></div><strong id="metric-evacuated">—</strong><span id="evacuated-caption">Run a plan to see results</span></article>
+      <article class="metric"><div class="metric-label">Still needing evacuation <span class="metric-icon">◷</span></div><strong id="metric-remaining">—</strong><span id="remaining-caption">Includes waiting and isolated people</span></article>
+      <article class="metric"><div class="metric-label">Earliest full evacuation <span class="metric-icon">◴</span></div><strong id="metric-completion">—</strong><span id="completion-caption">Minimum feasible time under this model</span></article>
+    </section>
+    <div class="workspace">
+      <aside class="control-panel card">
+        <div class="section-title"><span class="step-number">01</span><h2>Set the scenario</h2></div>
+        <label for="scenario-select">Sample network</label><select id="scenario-select"></select>
+        <p id="scenario-description" class="hint description"></p>
+        <div class="label-row"><label for="deadline">Evacuation deadline</label><output id="deadline-output" for="deadline">12 min</output></div>
+        <input type="range" id="deadline" min="1" max="60" value="12"><div class="range-labels"><span>1 minute</span><span>60 minutes</span></div>
+        <button id="run-button" class="button primary full"><span aria-hidden="true">↗</span> Calculate evacuation</button>
+        <button id="reset-button" class="button quiet full small">↺ Reset current scenario</button>
+        <div class="divider"></div>
+        <div class="section-title"><span class="step-number">02</span><h2>Explore the network</h2></div>
+        <p class="hint">Select a road to close it or change its capacity. Select a location to inspect or edit it.</p>
+        <div id="inspector" class="inspector"></div>
+        <div class="divider"></div>
+        <div class="data-actions"><button id="import-button" class="button secondary small">↑ Import JSON</button><button id="export-button" class="button secondary small">↓ Save network</button></div>
+        <input type="file" id="import-file" accept=".json,application/json" hidden>
+        <p class="hint tiny">Synthetic data · integer minutes · no installation or internet needed.</p>
+      </aside>
+      <section class="map-card card" aria-labelledby="map-title">
+        <div class="map-heading"><div><p class="eyebrow">LIVE NETWORK</p><h2 id="map-title">District network</h2></div><span id="network-chip" class="chip">8 locations · 10 roads</span></div>
+        <div class="map-toolbar"><div class="legend"><span><i class="origin-dot"></i> Residential</span><span><i class="shelter-dot"></i> Shelter</span><span><i class="blocked-line"></i> Closed road</span></div><label class="route-picker">Route from <select id="origin-select" aria-label="Shortest-path origin"></select></label></div>
+        <div class="map-wrap"><svg id="network-map" viewBox="0 0 900 500" role="group" aria-label="Interactive synthetic evacuation network"></svg><div id="map-note" class="map-note">Select a road or a location</div></div>
+        <div class="route-summary" id="route-summary"></div>
+        <div class="playback"><button class="play-button" id="play-button" aria-label="Play evacuation" disabled>▶</button><div class="timeline"><div class="timeline-label"><strong id="time-caption">Minute 0 / 12</strong><span id="safe-caption">0 people at shelters</span></div><input id="timeline" type="range" min="0" max="12" step="0.05" value="0" disabled aria-label="Evacuation playback time"></div><select id="playback-speed" aria-label="Playback speed"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option></select></div>
+      </section>
+    </div>
+    <section class="results-card card" aria-label="Analysis and network editor">
+      <div class="results-top"><div class="tabs" role="tablist" aria-label="Result views"><button class="tab active" id="tab-summary" data-tab="summary" role="tab" aria-selected="true" aria-controls="panel-summary">Plan summary</button><button class="tab" id="tab-algorithms" data-tab="algorithms" role="tab" aria-selected="false" aria-controls="panel-algorithms" tabindex="-1">Algorithm trace</button><button class="tab" id="tab-editor" data-tab="editor" role="tab" aria-selected="false" aria-controls="panel-editor" tabindex="-1">Network editor</button><button class="tab" id="tab-guide" data-tab="guide" role="tab" aria-selected="false" aria-controls="panel-guide" tabindex="-1">Model & demo</button></div><button id="download-results" class="button secondary small" disabled>↓ Export schedule</button></div>
+      <div id="panel-summary" class="tab-panel" role="tabpanel" aria-labelledby="tab-summary"></div>
+      <div id="panel-algorithms" class="tab-panel" role="tabpanel" aria-labelledby="tab-algorithms" hidden></div>
+      <div id="panel-editor" class="tab-panel" role="tabpanel" aria-labelledby="tab-editor" hidden></div>
+      <div id="panel-guide" class="tab-panel" role="tabpanel" aria-labelledby="tab-guide" hidden>
+        <div class="guide-grid"><article><span class="mini-label">THE THREE CORE ALGORITHMS</span><h3>From a road network to a feasible plan.</h3><ol class="guide-list"><li><strong>BFS checks reachability.</strong> Closed roads are removed. A traversal identifies which locations remain reachable from each residential area.</li><li><strong>Dijkstra finds a fastest route.</strong> Road travel time is the nonnegative edge weight. This route assumes no queue and does not reserve capacity.</li><li><strong>Edmonds–Karp allocates people over time.</strong> A copy of every location is created for each minute. Road edges advance time; waiting edges allow queues. Max-flow finds the maximum number who arrive by the deadline.</li><li><strong>Binary search finds the earliest full evacuation.</strong> The solver searches deadlines up to 60 minutes. More time never reduces the number who can arrive.</li></ol></article><article><span class="mini-label">MODEL ASSUMPTIONS</span><h3>What the numbers mean.</h3><ul class="guide-list"><li>Road capacity is <strong>people entering per minute, per direction</strong>. A two-way road has independent capacity in each direction.</li><li>Travel takes a fixed, whole number of minutes. Departures begin at minute 0. Arrival exactly at the deadline counts.</li><li>Shelter capacity is <strong>total space</strong>, shared across all arrival times. It does not reset every minute.</li><li>People may wait at locations. Waiting space is unlimited; no road-occupancy, panic, hazard-spread, or intersection-capacity model is included.</li><li>Edits create a new plan starting at minute 0. Playback visualizes that plan; it does not model a mid-journey aftershock.</li><li>The objective is maximum arrivals by a deadline. It does not optimize fairness or total travel time among equally good plans.</li></ul></article></div>
+        <div class="demo-callout"><div><span class="mini-label">A QUICK CLASSROOM DEMO</span><h3>Make the algorithms visible.</h3></div><p>1. Run the campus scenario and play the plan. 2. Close road R6 and calculate again. 3. Show the shortest route and the new arrival count. 4. Try “Shelters at capacity” to show why more time cannot fix missing shelter space. 5. Finish with the 10-person example: deadline 3 → 6 arrivals; earliest full evacuation → 5 minutes.</p></div>
+        <p class="hint">Educational simulation using synthetic data, not an operational emergency-routing service. Limits: 20 locations, 60 roads, 3,000 people, 60 minutes.</p>
+      </div>
+    </section>
+    <footer><span><strong>SafeRoute</strong> · Built to make graph algorithms visible.</span><span>BFS <i>·</i> Dijkstra <i>·</i> Edmonds–Karp</span></footer>
+  </main>
+  <dialog id="edit-dialog" aria-labelledby="dialog-title"><form id="edit-form"><div class="dialog-heading"><h2 id="dialog-title">Edit location</h2><button type="button" id="close-dialog" class="button quiet" aria-label="Close editor">✕</button></div><div id="dialog-fields"></div><p id="dialog-error" class="form-error" role="alert"></p><div class="dialog-actions"><button type="button" id="cancel-dialog" class="button secondary">Cancel</button><button type="submit" class="button primary">Save changes</button></div></form></dialog>
+  <noscript><p class="noscript">Enable JavaScript in your browser to run the evacuation simulator.</p></noscript>
+  <script>
+/* SafeRoute: dependency-free graph algorithms. Node.js + ordinary browsers. */
+(function (root, factory) {
+  const engine = factory();
+  if (typeof module === 'object' && module.exports) module.exports = engine;
+  else { root.Evacuation = engine; root.createEvacuationEngine = factory; }
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  'use strict';
+  const LIMITS = Object.freeze({ nodes: 20, roads: 60, horizon: 60, population: 3000 });
+
+  function validate(input) {
+    const fail = (message) => { throw new Error(message); };
+    if (!input || !Array.isArray(input.nodes) || !Array.isArray(input.roads))
+      fail('A scenario must contain nodes and roads arrays.');
+    if (!input.nodes.length || input.nodes.length > LIMITS.nodes)
+      fail(`Use between 1 and ${LIMITS.nodes} locations.`);
+    if (input.roads.length > LIMITS.roads) fail(`Use at most ${LIMITS.roads} roads.`);
+    const ids = new Set(), roadIds = new Set();
+    const integer = (v, lo, hi, label) => {
+      if (!Number.isSafeInteger(v) || v < lo || v > hi) fail(`${label} must be an integer from ${lo} to ${hi}.`);
+      return v;
+    };
+    const nodes = input.nodes.map((n) => {
+      if (!n || typeof n.id !== 'string' || !/^[A-Za-z0-9_-]{1,24}$/.test(n.id) || ids.has(n.id))
+        fail('Location IDs must be unique, using 1–24 letters, numbers, underscores or hyphens.');
+      ids.add(n.id);
+      if (!['origin', 'junction', 'shelter'].includes(n.type)) fail(`Unknown location type for ${n.id}.`);
+      const population = integer(n.population ?? 0, 0, LIMITS.population, 'Population');
+      const capacity = integer(n.capacity ?? 0, 0, LIMITS.population, 'Shelter capacity');
+      if (n.type !== 'origin' && population) fail('Only origin locations can contain an initial population.');
+      if (n.type !== 'shelter' && capacity) fail('Only shelters can have a shelter capacity.');
+      const x = n.x ?? 450, y = n.y ?? 250;
+      if (!Number.isFinite(x) || x < 45 || x > 855 || !Number.isFinite(y) || y < 50 || y > 450)
+        fail('Location coordinates must be inside the map (x: 45–855, y: 50–450).');
+      return { id: n.id, name: String(n.name || n.id).slice(0, 60), type: n.type, population, capacity, x, y };
+    });
+    if (nodes.reduce((s, n) => s + n.population, 0) > LIMITS.population)
+      fail(`Use at most ${LIMITS.population} people in a scenario.`);
+    const roads = input.roads.map((r) => {
+      if (!r || typeof r.id !== 'string' || !/^[A-Za-z0-9_-]{1,24}$/.test(r.id) || roadIds.has(r.id))
+        fail('Road IDs must be unique, using 1–24 letters, numbers, underscores or hyphens.');
+      roadIds.add(r.id);
+      if (!ids.has(r.from) || !ids.has(r.to) || r.from === r.to) fail(`Road ${r.id} needs two different existing locations.`);
+      if (r.blocked !== undefined && typeof r.blocked !== 'boolean') fail('Road blocked must be true or false.');
+      if (r.bidirectional !== undefined && typeof r.bidirectional !== 'boolean') fail('Road bidirectional must be true or false.');
+      return { id: r.id, from: r.from, to: r.to,
+        time: integer(r.time, 1, 60, 'Road travel time'),
+        capacity: integer(r.capacity, 1, LIMITS.population, 'Road capacity'),
+        blocked: r.blocked ?? false, bidirectional: r.bidirectional ?? true };
+    });
+    return { name: String(input.name || 'Custom scenario').slice(0, 80),
+      description: String(input.description || '').slice(0, 600), nodes, roads };
+  }
+
+  function adjacency(scenario) {
+    const graph = new Map(scenario.nodes.map((n) => [n.id, []]));
+    for (const road of scenario.roads) {
+      if (road.blocked) continue;
+      graph.get(road.from).push({ to: road.to, road: road.id, time: road.time });
+      if (road.bidirectional) graph.get(road.to).push({ to: road.from, road: road.id, time: road.time });
+    }
+    return graph;
+  }
+
+  function bfs(scenario, start) {
+    const graph = adjacency(scenario);
+    if (!graph.has(start)) throw new Error('Select an existing start location.');
+    const order = [start], seen = new Set(order), parent = Object.create(null);
+    for (let head = 0; head < order.length; head++) {
+      for (const edge of graph.get(order[head])) {
+        if (seen.has(edge.to)) continue;
+        seen.add(edge.to); parent[edge.to] = order[head]; order.push(edge.to);
+      }
+    }
+    return { order, parent };
+  }
+
+  class MinHeap {
+    constructor() { this.items = []; }
+    push(item) {
+      const a = this.items; let i = a.length; a.push(item);
+      while (i > 0) { const p = (i - 1) >> 1; if (a[p][0] <= item[0]) break; a[i] = a[p]; i = p; }
+      a[i] = item;
+    }
+    pop() {
+      const a = this.items, first = a[0], last = a.pop();
+      if (a.length) {
+        let i = 0;
+        while (2 * i + 1 < a.length) {
+          let child = 2 * i + 1;
+          if (child + 1 < a.length && a[child + 1][0] < a[child][0]) child++;
+          if (a[child][0] >= last[0]) break;
+          a[i] = a[child]; i = child;
+        }
+        a[i] = last;
+      }
+      return first;
+    }
+    get size() { return this.items.length; }
+  }
+
+  function dijkstra(scenario, start) {
+    const graph = adjacency(scenario);
+    if (!graph.has(start)) throw new Error('Select an existing start location.');
+    const distances = Object.fromEntries(scenario.nodes.map((n) => [n.id, Infinity]));
+    const previous = Object.create(null), heap = new MinHeap(), order = [];
+    distances[start] = 0; heap.push([0, start]);
+    while (heap.size) {
+      const [distance, u] = heap.pop();
+      if (distance !== distances[u]) continue;
+      order.push(u);
+      for (const edge of graph.get(u)) {
+        const next = distance + edge.time;
+        if (next < distances[edge.to]) {
+          distances[edge.to] = next; previous[edge.to] = { from: u, road: edge.road };
+          heap.push([next, edge.to]);
+        }
+      }
+    }
+    const shelters = scenario.nodes.filter((n) => n.type === 'shelter' && n.capacity > 0).map((n) => {
+      const nodes = [], roads = [];
+      if (Number.isFinite(distances[n.id])) {
+        let u = n.id; nodes.push(u);
+        while (u !== start) { roads.push(previous[u].road); u = previous[u].from; nodes.push(u); }
+        nodes.reverse(); roads.reverse();
+      }
+      return { id: n.id, time: Number.isFinite(distances[n.id]) ? distances[n.id] : null, nodes, roads };
+    }).sort((a, b) => (a.time ?? Infinity) - (b.time ?? Infinity));
+    return { distances: Object.fromEntries(Object.entries(distances).map(([k, v]) => [k, Number.isFinite(v) ? v : null])),
+      order, shelters };
+  }
+
+  // Each original edge has its own reverse residual edge, even for parallel roads.
+  class FlowNetwork {
+    constructor(size) { this.graph = Array.from({ length: size }, () => []); this.edges = []; }
+    addEdge(from, to, capacity, meta = null) {
+      const forward = { from, to, capacity, residual: capacity, reverse: this.graph[to].length, meta };
+      const reverse = { from: to, to: from, capacity: 0, residual: 0, reverse: this.graph[from].length, meta: null };
+      this.graph[from].push(forward); this.graph[to].push(reverse); this.edges.push(forward);
+      return forward;
+    }
+    maxFlow(source, sink) {
+      if (source === sink) throw new Error('Flow source and sink must differ.');
+      let value = 0, augmentations = 0;
+      const n = this.graph.length, parents = new Int32Array(n), edgeIndices = new Int32Array(n), queue = new Int32Array(n);
+      while (true) {
+        parents.fill(-1); parents[source] = source; queue[0] = source;
+        let head = 0, tail = 1;
+        while (head < tail && parents[sink] === -1) {
+          const u = queue[head++], list = this.graph[u];
+          for (let j = 0; j < list.length; j++) {
+            const edge = list[j];
+            if (edge.residual <= 0 || parents[edge.to] !== -1) continue;
+            parents[edge.to] = u; edgeIndices[edge.to] = j; queue[tail++] = edge.to;
+            if (edge.to === sink) break;
+          }
+        }
+        if (parents[sink] === -1) break;
+        let amount = Infinity;
+        for (let v = sink; v !== source; v = parents[v]) amount = Math.min(amount, this.graph[parents[v]][edgeIndices[v]].residual);
+        for (let v = sink; v !== source; v = parents[v]) {
+          const edge = this.graph[parents[v]][edgeIndices[v]];
+          edge.residual -= amount; this.graph[v][edge.reverse].residual += amount;
+        }
+        value += amount; augmentations++;
+      }
+      return { value, augmentations };
+    }
+  }
+
+  function makeTimeNetwork(scenario, horizon) {
+    const count = scenario.nodes.length, shelters = scenario.nodes.filter((n) => n.type === 'shelter');
+    const nodeIndex = new Map(scenario.nodes.map((n, i) => [n.id, i]));
+    const gateOffset = count * (horizon + 1), source = gateOffset + shelters.length, sink = source + 1;
+    const network = new FlowNetwork(sink + 1), total = scenario.nodes.reduce((s, n) => s + n.population, 0);
+    const at = (id, t) => t * count + nodeIndex.get(id);
+    for (const n of scenario.nodes) {
+      if (n.type === 'origin' && n.population) network.addEdge(source, at(n.id, 0), n.population, { type: 'source', origin: n.id });
+      for (let t = 0; t < horizon; t++) network.addEdge(at(n.id, t), at(n.id, t + 1), total,
+        { type: 'wait', at: n.id, start: t, end: t + 1 });
+    }
+    for (const r of scenario.roads) {
+      if (r.blocked) continue;
+      for (let t = 0; t + r.time <= horizon; t++) {
+        network.addEdge(at(r.from, t), at(r.to, t + r.time), r.capacity,
+          { type: 'travel', road: r.id, from: r.from, to: r.to, start: t, end: t + r.time });
+        if (r.bidirectional) network.addEdge(at(r.to, t), at(r.from, t + r.time), r.capacity,
+          { type: 'travel', road: r.id, from: r.to, to: r.from, start: t, end: t + r.time });
+      }
+    }
+    shelters.forEach((s, i) => {
+      const gate = gateOffset + i;
+      for (let t = 0; t <= horizon; t++) network.addEdge(at(s.id, t), gate, total, { type: 'arrive', shelter: s.id, time: t });
+      // One shared gate enforces TOTAL shelter occupancy across every minute.
+      network.addEdge(gate, sink, s.capacity, { type: 'shelter', shelter: s.id });
+    });
+    return { network, source, sink, total };
+  }
+
+  function decompose(network, source, sink) {
+    const remaining = new Map(network.edges.map((e) => [e, e.capacity - e.residual]));
+    const paths = [];
+    while (true) {
+      const parent = new Map([[source, null]]), queue = [source];
+      for (let head = 0; head < queue.length && !parent.has(sink); head++) {
+        for (const e of network.graph[queue[head]]) {
+          if (!(remaining.get(e) > 0) || parent.has(e.to)) continue;
+          parent.set(e.to, e); queue.push(e.to);
+        }
+      }
+      if (!parent.has(sink)) break;
+      const chain = []; let amount = Infinity;
+      for (let v = sink; v !== source;) { const e = parent.get(v); chain.push(e); amount = Math.min(amount, remaining.get(e)); v = e.from; }
+      chain.reverse(); chain.forEach((e) => remaining.set(e, remaining.get(e) - amount));
+      const arrival = chain.find((e) => e.meta?.type === 'arrive').meta;
+      paths.push({ people: amount, origin: chain[0].meta.origin, shelter: arrival.shelter, arrival: arrival.time,
+        steps: chain.filter((e) => ['wait', 'travel'].includes(e.meta?.type)).map((e) => ({ ...e.meta })) });
+    }
+    return paths.sort((a, b) => a.arrival - b.arrival || a.origin.localeCompare(b.origin));
+  }
+
+  function solveDeadline(scenario, horizon, details = true) {
+    if (!Number.isInteger(horizon) || horizon < 0 || horizon > LIMITS.horizon) throw new Error('Deadline must be an integer from 0 to 60 minutes.');
+    const { network, source, sink, total } = makeTimeNetwork(scenario, horizon);
+    const flow = network.maxFlow(source, sink);
+    if (!details) return flow.value;
+    const arrivals = Array(horizon + 1).fill(0), shelters = Object.create(null), roads = Object.create(null);
+    for (const s of scenario.nodes.filter((n) => n.type === 'shelter')) shelters[s.id] = { used: 0, capacity: s.capacity, arrivals: Array(horizon + 1).fill(0) };
+    for (const r of scenario.roads) roads[r.id] = { people: 0, peak: 0, departures: [] };
+    for (const e of network.edges) {
+      const used = e.capacity - e.residual, m = e.meta;
+      if (!used) continue;
+      if (m.type === 'arrive') { arrivals[m.time] += used; shelters[m.shelter].used += used; shelters[m.shelter].arrivals[m.time] += used; }
+      if (m.type === 'travel') {
+        roads[m.road].people += used; roads[m.road].peak = Math.max(roads[m.road].peak, used);
+        roads[m.road].departures.push({ from: m.from, to: m.to, minute: m.start, people: used });
+      }
+    }
+    let sum = 0; const cumulative = arrivals.map((v) => sum += v);
+    return { total, evacuated: flow.value, remaining: total - flow.value, horizon, arrivals, cumulative, shelters, roads,
+      paths: decompose(network, source, sink),
+      stats: { vertices: network.graph.length, edges: network.edges.length, augmentations: flow.augmentations } };
+  }
+
+  // Remove rate limits but retain initial populations, direction and total shelter space.
+  // Positive-capacity open roads can carry arbitrarily many people given enough time.
+  function eventualCapacity(scenario) {
+    const count = scenario.nodes.length, source = count, sink = count + 1, network = new FlowNetwork(count + 2);
+    const index = new Map(scenario.nodes.map((n, i) => [n.id, i])), total = scenario.nodes.reduce((s, n) => s + n.population, 0);
+    for (const n of scenario.nodes) {
+      if (n.type === 'origin') network.addEdge(source, index.get(n.id), n.population);
+      if (n.type === 'shelter') network.addEdge(index.get(n.id), sink, n.capacity);
+    }
+    for (const r of scenario.roads) {
+      if (r.blocked) continue;
+      network.addEdge(index.get(r.from), index.get(r.to), total);
+      if (r.bidirectional) network.addEdge(index.get(r.to), index.get(r.from), total);
+    }
+    return network.maxFlow(source, sink).value;
+  }
+
+  function analyze(input, horizon) {
+    const scenario = validate(input), result = solveDeadline(scenario, horizon), origins = Object.create(null);
+    let isolatedPopulation = 0;
+    for (const n of scenario.nodes.filter((n) => n.type === 'origin')) {
+      const routes = dijkstra(scenario, n.id), reachable = routes.shelters.some((s) => s.time !== null);
+      origins[n.id] = { bfs: bfs(scenario, n.id), routes, reachable };
+      if (!reachable) isolatedPopulation += n.population;
+    }
+    const eventual = eventualCapacity(scenario); let completion;
+    if (result.total === 0) completion = { status: 'complete', minutes: 0 };
+    else if (eventual < result.total) completion = { status: 'impossible', minutes: null };
+    else {
+      const cache = new Map([[horizon, result.evacuated]]);
+      const value = (h) => { if (!cache.has(h)) cache.set(h, solveDeadline(scenario, h, false)); return cache.get(h); };
+      let lo = result.evacuated === result.total ? 0 : horizon + 1;
+      let hi = result.evacuated === result.total ? horizon : LIMITS.horizon;
+      if (lo > hi || value(hi) < result.total) completion = { status: 'beyond_limit', minutes: null, limit: LIMITS.horizon };
+      else {
+        while (lo < hi) { const mid = (lo + hi) >> 1; if (value(mid) === result.total) hi = mid; else lo = mid + 1; }
+        completion = { status: 'complete', minutes: lo };
+      }
+    }
+    return { ...result, origins, isolatedPopulation, eventual, completion };
+  }
+
+  return { LIMITS, validate, bfs, dijkstra, FlowNetwork, solveDeadline, eventualCapacity, analyze };
+});
+
+</script>
+  <script>
+(function (root) {
+  'use strict';
+  const origin = (id, name, x, y, population) => ({ id, name, x, y, type: 'origin', population, capacity: 0 });
+  const junction = (id, name, x, y) => ({ id, name, x, y, type: 'junction', population: 0, capacity: 0 });
+  const shelter = (id, name, x, y, capacity) => ({ id, name, x, y, type: 'shelter', population: 0, capacity });
+  const road = (id, from, to, time, capacity, blocked = false, bidirectional = true) => ({ id, from, to, time, capacity, blocked, bidirectional });
+  const campus = {
+    name: 'Campus district',
+    description: 'A synthetic campus with three residential areas and two shelters. Block the central bridge to see routes and arrival counts change.',
+    nodes: [origin('A', 'North residence', 110, 110, 70), origin('B', 'West residence', 100, 365, 60),
+      origin('C', 'Student housing', 345, 410, 50), junction('J1', 'Library crossing', 325, 150),
+      junction('J2', 'Market junction', 390, 305), junction('J3', 'Bridge east', 590, 240),
+      shelter('S1', 'Open field', 775, 105, 110), shelter('S2', 'Community hall', 790, 380, 100)],
+    roads: [road('R1', 'A', 'J1', 2, 10), road('R2', 'B', 'J2', 2, 8), road('R3', 'C', 'J2', 1, 7),
+      road('R4', 'J1', 'J2', 2, 6), road('R5', 'J1', 'J3', 2, 12), road('R6', 'J2', 'J3', 2, 10),
+      road('R7', 'J3', 'S1', 2, 12), road('R8', 'J3', 'S2', 2, 10), road('R9', 'J1', 'S1', 5, 4),
+      road('R10', 'J2', 'S2', 5, 4)]
+  };
+  const blocked = JSON.parse(JSON.stringify(campus));
+  blocked.name = 'Aftershock: bridge closed';
+  blocked.description = 'The central bridge and the north bypass are damaged. Reopen roads or increase the deadline to compare evacuation outcomes.';
+  blocked.roads.find((r) => r.id === 'R6').blocked = true;
+  blocked.roads.find((r) => r.id === 'R9').blocked = true;
+  const limited = JSON.parse(JSON.stringify(campus));
+  limited.name = 'Shelters at capacity';
+  limited.description = 'Only 120 shelter spaces are available for 180 people. More time alone cannot evacuate everyone; edit shelter capacity to resolve the shortage.';
+  limited.nodes.find((n) => n.id === 'S1').capacity = 70;
+  limited.nodes.find((n) => n.id === 'S2').capacity = 50;
+  const teaching = {
+    name: 'Small example · 10 people',
+    description: 'One road, 3 people per minute, 2 minutes of travel. Six people arrive by minute 3; everyone can arrive by minute 5.',
+    nodes: [origin('A', 'Residential block', 190, 250, 10), shelter('S', 'Safe assembly area', 700, 250, 10)],
+    roads: [road('R1', 'A', 'S', 2, 3, false, false)]
+  };
+  const scenarios = [campus, blocked, limited, teaching];
+  if (typeof module === 'object' && module.exports) module.exports = scenarios;
+  else root.EVACUATION_SCENARIOS = scenarios;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+</script>
+  <script>
+(function () {
+  'use strict';
+  const E = window.Evacuation, $ = (id) => document.getElementById(id);
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+  const escape = (value) => String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = (n) => Number(n).toLocaleString('en-US');
+  const state = { scenario: E.validate(clone(window.EVACUATION_SCENARIOS[0])), base: null,
+    selection: { kind: 'road', id: 'R6' }, origin: 'A', deadline: 12, result: null, baseline: null,
+    time: 0, playing: false, lastFrame: 0, animation: 0, worker: null, workerURL: null, version: 0, pending: false, editing: null, imported: null };
+  state.base = clone(state.scenario);
+  const name = (id) => state.scenario.nodes.find((n) => n.id === id)?.name || id;
+  const total = () => state.scenario.nodes.reduce((s, n) => s + n.population, 0);
+
+  function message(text, error = false) {
+    $('message').textContent = text; $('message').hidden = !text; $('message').className = error ? 'error' : '';
+  }
+  function stopWorker() {
+    if (state.worker) state.worker.terminate();
+    if (state.workerURL) URL.revokeObjectURL(state.workerURL);
+    state.worker = null; state.workerURL = null;
+  }
+  function pause() {
+    state.playing = false; cancelAnimationFrame(state.animation);
+    $('play-button').textContent = '▶'; $('play-button').setAttribute('aria-label', 'Play evacuation');
+  }
+  function invalidate(text = 'Network updated. Calculate evacuation to generate a new plan.') {
+    state.version++; stopWorker(); pause(); state.result = null; state.baseline = null; state.pending = false; state.time = 0;
+    $('run-button').disabled = false; $('run-button').textContent = '↗ Calculate evacuation';
+    render(); if (text) message(text);
+  }
+  function setScenario(scenario, base = scenario) {
+    state.scenario = E.validate(clone(scenario)); state.base = E.validate(clone(base));
+    state.origin = state.scenario.nodes.find((n) => n.type === 'origin')?.id || null;
+    state.selection = state.scenario.roads.length ? {kind:'road',id:state.scenario.roads[Math.min(5,state.scenario.roads.length-1)].id} : {kind:'node',id:state.scenario.nodes[0].id};
+    invalidate(''); run();
+  }
+  function completionText(c) {
+    return c.status === 'complete' ? `${c.minutes} min` : c.status === 'impossible' ? 'Not feasible' : '> 60 min';
+  }
+  function renderMetrics() {
+    const people = total(), origins = state.scenario.nodes.filter((n) => n.type === 'origin').length, r = state.result;
+    $('metric-population').textContent = fmt(people);
+    $('population-caption').textContent = `Across ${origins} residential ${origins === 1 ? 'area' : 'areas'}`;
+    $('metric-evacuated').textContent = r ? fmt(r.evacuated) : '—';
+    $('evacuated-caption').textContent = r ? `${people ? Math.round(100*r.evacuated/people) : 100}% of people · within ${state.deadline} minutes` : 'Calculate to see the new plan';
+    $('metric-remaining').textContent = r ? fmt(r.remaining) : '—';
+    $('remaining-caption').textContent = r ? `${fmt(r.isolatedPopulation)} people have no route to an open shelter` : 'Includes waiting and isolated people';
+    $('metric-completion').textContent = r ? completionText(r.completion) : '—';
+    $('metric-completion').style.fontSize = r?.completion.status === 'impossible' ? '25px' : '';
+    $('completion-caption').textContent = r?.completion.status === 'impossible' ? `At most ${fmt(r.eventual)} can be sheltered on this network` :
+      r?.completion.status === 'beyond_limit' ? 'Possible eventually; exceeds the 60-minute search' : 'Minimum feasible time under this model';
+    $('play-button').disabled = !r; $('timeline').disabled = !r; $('download-results').disabled = !r;
+  }
+
+  function roadGeometry(road) {
+    const a = state.scenario.nodes.find((n) => n.id === road.from), b = state.scenario.nodes.find((n) => n.id === road.to);
+    const siblings = state.scenario.roads.filter((r) => [r.from,r.to].sort().join('|') === [road.from,road.to].sort().join('|'));
+    const index = siblings.findIndex((r) => r.id === road.id), offset = (index-(siblings.length-1)/2)*54;
+    // Keep the offset orientation canonical, even if a parallel edge is reversed.
+    const sign = road.from < road.to ? 1 : -1, dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy)||1;
+    return {a,b,c:{x:(a.x+b.x)/2-dy/length*offset*sign,y:(a.y+b.y)/2+dx/length*offset*sign}};
+  }
+  function point(g,t) { return {x:(1-t)*(1-t)*g.a.x+2*(1-t)*t*g.c.x+t*t*g.b.x,y:(1-t)*(1-t)*g.a.y+2*(1-t)*t*g.c.y+t*t*g.b.y}; }
+  function selectedRoutes() { return state.origin ? E.dijkstra(state.scenario,state.origin) : null; }
+  function renderMap() {
+    const routes=selectedRoutes(), nearest=routes?.shelters.find((s)=>s.time!==null), routeRoads=new Set(nearest?.roads||[]);
+    let svg = '<defs><pattern id="grid" width="38" height="38" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".65" fill="#d9e0cf"/></pattern></defs><rect width="900" height="500" fill="url(#grid)"/>';
+    svg += '<g fill="#f0f3e9" stroke="#e9eee0"><rect x="160" y="175" width="87" height="93" rx="14"/><rect x="444" y="73" width="88" height="67" rx="13"/><rect x="505" y="335" width="112" height="95" rx="16"/><rect x="715" y="181" width="92" height="92" rx="22"/></g><g fill="#e6eddd"><circle cx="735" cy="215" r="11"/><circle cx="782" cy="235" r="16"/><circle cx="755" cy="253" r="10"/></g>';
+    svg += '<text x="74" y="456" fill="#b4beac" font-size="9" letter-spacing="2">RESIDENTIAL DISTRICT</text><text x="680" y="458" fill="#b4beac" font-size="9" letter-spacing="2">ASSEMBLY AREAS</text>';
+    for (const r of state.scenario.roads) {
+      const g=roadGeometry(r),mid=point(g,.5),selected=state.selection?.kind==='road'&&state.selection.id===r.id;
+      const color=r.blocked?'#c86a60':selected?'#d1874d':routeRoads.has(r.id)?'#548c70':'#bcc8b1';
+      const path=`M ${g.a.x} ${g.a.y} Q ${g.c.x} ${g.c.y} ${g.b.x} ${g.b.y}`;
+      svg+=`<g data-kind="road" data-id="${escape(r.id)}" tabindex="0" role="button" aria-label="Road ${escape(r.id)}, ${escape(name(r.from))} to ${escape(name(r.to))}, ${r.blocked?'closed':`${r.time} minutes, ${r.capacity} people per minute`}"><path d="${path}" fill="none" stroke="#f9faf6" stroke-width="11"/><path d="${path}" fill="none" stroke="${color}" stroke-width="${selected?4:3}" ${r.blocked?'stroke-dasharray="7 7"':''}/><path class="road-hit" d="${path}" fill="none" stroke="transparent" stroke-width="23"/>`;
+      if(!r.bidirectional){const p=point(g,.72),q=point(g,.73),angle=Math.atan2(q.y-p.y,q.x-p.x)*180/Math.PI;svg+=`<path d="M -5 -4 L 4 0 L -5 4" fill="none" stroke="${color}" stroke-width="2" transform="translate(${p.x},${p.y}) rotate(${angle})" pointer-events="none"/>`;}
+      svg+=`<rect x="${mid.x-34}" y="${mid.y-11}" width="68" height="21" rx="5" fill="${selected?'#fff1df':'#ffffff'}" stroke="${selected?'#edd1af':'#e9ede2'}" pointer-events="none"/><text x="${mid.x}" y="${mid.y+3}" text-anchor="middle" class="road-label">${r.blocked?'CLOSED':`${r.time}m · ${r.capacity}/min`}</text></g>`;
+    }
+    for(const n of state.scenario.nodes){
+      const selected=state.selection?.kind==='node'&&state.selection.id===n.id,origin=n.type==='origin',shelter=n.type==='shelter';
+      svg+=`<g class="node" data-kind="node" data-id="${escape(n.id)}" tabindex="0" role="button" aria-label="${escape(n.name)}, ${n.type}" transform="translate(${n.x},${n.y})">`;
+      if(selected)svg+='<circle r="31" fill="none" stroke="#87a68b" stroke-dasharray="3 3"/>';
+      if(shelter)svg+='<rect x="-24" y="-24" width="48" height="48" rx="14" fill="#e3eee2" stroke="#fff" stroke-width="4"/><rect x="-17" y="-17" width="34" height="34" rx="9" fill="#376c52"/>';
+      else svg+=`<circle r="${origin?24:14}" fill="${origin?'#f9e9d9':'#edf1e8'}" stroke="#fff" stroke-width="4"/><circle r="${origin?17:8}" fill="${origin?'#df8750':'#a9bba2'}"/>`;
+      svg+=`<text text-anchor="middle" y="4" fill="${origin||shelter?'#fff':'#fff'}" font-size="${origin||shelter?11:7}" font-weight="600">${escape(n.id)}</text><text class="node-label" y="${origin||shelter?41:29}" text-anchor="middle">${escape(n.name)}</text>`;
+      if(origin||shelter)svg+=`<text class="node-count" y="55" text-anchor="middle">${fmt(origin?n.population:n.capacity)} ${origin?'people':'spaces'}</text>`;
+      svg+='</g>';
+    }
+    svg+='<g id="people-layer" pointer-events="none"></g>';
+    $('network-map').innerHTML=svg;
+    $('network-chip').textContent=`${state.scenario.nodes.length} locations · ${state.scenario.roads.length} roads`;
+    $('map-note').textContent=state.result?'Play the plan to see scheduled movement':'Select a road or a location';
+    if(nearest){$('route-summary').innerHTML=`<span class="route-dot"></span><div><strong>Fastest route from ${escape(name(state.origin))}:</strong> ${nearest.nodes.map((id)=>escape(name(id))).join(' → ')} · <strong>${nearest.time} min</strong><small>Dijkstra route · travel time only; queues and shelter allocation are handled in the evacuation plan.</small></div>`;}
+    else $('route-summary').innerHTML=`<span class="route-dot"></span><div>${state.origin?'No route from this origin to a shelter with space.':'Add a residential location to explore shortest routes.'}<small>Open roads are checked with BFS; road direction is respected.</small></div>`;
+    renderPlayback();
+  }
+
+  function renderInspector(){
+    const s=state.selection;
+    if(!s){$('inspector').innerHTML='<p class="hint">Select a location or road on the map.</p>';return;}
+    if(s.kind==='road'){
+      const r=state.scenario.roads.find((r)=>r.id===s.id);if(!r){state.selection=null;return renderInspector();}
+      $('inspector').innerHTML=`<div class="inspector-kicker">ROAD ${escape(r.id)}</div><div class="inspector-name">${escape(name(r.from))} ${r.bidirectional?'↔':'→'} ${escape(name(r.to))}</div><div class="status-toggle"><label for="road-blocked">Road closed / damaged</label><input id="road-blocked" type="checkbox" ${r.blocked?'checked':''}></div><div class="field-pair"><div><label for="road-time">Travel time (min)</label><input id="road-time" type="number" min="1" max="60" value="${r.time}"></div><div><label for="road-capacity">People / min / dir.</label><input id="road-capacity" type="number" min="1" max="3000" value="${r.capacity}"></div></div><button class="button secondary small full" data-edit-road="${escape(r.id)}">Edit road details</button>`;
+      $('road-blocked').addEventListener('change',(event)=>updateRoad(r.id,{blocked:event.target.checked}));
+      $('road-time').addEventListener('change',(event)=>updateRoad(r.id,{time:Number(event.target.value)}));
+      $('road-capacity').addEventListener('change',(event)=>updateRoad(r.id,{capacity:Number(event.target.value)}));
+    }else{
+      const n=state.scenario.nodes.find((n)=>n.id===s.id);if(!n){state.selection=null;return renderInspector();}
+      $('inspector').innerHTML=`<div class="inspector-kicker">${escape(n.type.toUpperCase())} · ${escape(n.id)}</div><div class="inspector-name">${escape(n.name)}</div><p class="hint">${n.type==='origin'?`${fmt(n.population)} people start here.`:n.type==='shelter'?`${fmt(n.capacity)} total shelter spaces.`:'An intersection where people can wait or change roads.'}</p><button class="button secondary small full" data-edit-node="${escape(n.id)}">Edit this location</button>`;
+    }
+  }
+  function updateRoad(id,changes){
+    const next=clone(state.scenario);Object.assign(next.roads.find((r)=>r.id===id),changes);
+    try{state.scenario=E.validate(next);invalidate();}catch(error){message(error.message,true);renderInspector();}
+  }
+
+  function renderSummary(){
+    const r=state.result;
+    if(!r){$('panel-summary').innerHTML=`<div class="empty-state"><strong>${state.pending?'Calculating a feasible plan…':'Your next evacuation plan starts here.'}</strong>${state.pending?'Checking travel delays, road capacities and shelter space.':'Choose a deadline, edit the network, then calculate evacuation.'}</div>`;return;}
+    const max=Math.max(1,r.evacuated),baseline=state.baseline,difference=baseline===null?0:r.evacuated-baseline;
+    const bars=r.cumulative.map((v,t)=>`<div class="bar-column" title="Minute ${t}: ${fmt(v)} people sheltered"><div class="bar" style="height:${v/max*100}%"></div></div>`).join('');
+    const shelters=state.scenario.nodes.filter((n)=>n.type==='shelter').map((s)=>`<div class="shelter-row"><div class="shelter-label"><strong>${escape(s.name)}</strong><span>${fmt(r.shelters[s.id].used)} / ${fmt(s.capacity)} spaces</span></div><div class="progress-track" aria-label="${escape(s.name)} occupancy"><div class="progress-fill" style="width:${s.capacity?r.shelters[s.id].used/s.capacity*100:0}%"></div></div></div>`).join('')||'<p class="hint">No shelters are configured.</p>';
+    const comparison=difference===0?`Same deadline result as the original scenario: ${fmt(baseline??r.evacuated)} arrivals.`:`${fmt(Math.abs(difference))} ${difference>0?'more':'fewer'} people arrive than in the original scenario (${fmt(baseline)}), at the same ${state.deadline}-minute deadline.`;
+    const paths=r.paths.slice(0,12).map((p,i)=>`<tr><td class="mono">${String(i+1).padStart(2,'0')}</td><td><strong>${p.people}</strong></td><td>${escape(name(p.origin))}</td><td>${p.steps.filter((s)=>s.type==='travel').map((s)=>escape(s.road)).join(' → ')||'—'}</td><td>${escape(name(p.shelter))}</td><td>${p.arrival} min</td></tr>`).join('');
+    $('panel-summary').innerHTML=`<div class="summary-grid"><div><span class="mini-label">ARRIVALS OVER TIME</span><h3>${fmt(r.evacuated)} people reach shelter by minute ${r.horizon}.</h3><p class="result-subtitle">Cumulative arrivals for this feasible schedule. The solver maximizes the final count.</p><div class="bar-chart" role="img" aria-label="Cumulative shelter arrivals from minute zero to minute ${r.horizon}: ${r.cumulative.join(', ')}">${bars}</div><div class="chart-axis"><span>Minute 0</span><span>Minute ${r.horizon}</span></div></div><div><span class="mini-label">SHELTER ALLOCATION</span><h3>Space, shared across every arrival.</h3>${shelters}</div></div><div class="comparison ${difference<0?'warning':''}">${comparison}${r.isolatedPopulation?` ${fmt(r.isolatedPopulation)} people are isolated from all shelters with space.`:''}</div><div class="table-heading"><div><h3>Scheduled evacuation groups</h3><p class="result-subtitle">${r.paths.length?`Showing ${Math.min(12,r.paths.length)} of ${r.paths.length} groups. Export the schedule for every departure and waiting step.`:'No complete journey is feasible by this deadline.'}</p></div><span class="chip">${r.stats.augmentations} augmenting paths</span></div><div class="table-wrap"><table><thead><tr><th>Group</th><th>People</th><th>Origin</th><th>Road sequence</th><th>Shelter</th><th>Arrival</th></tr></thead><tbody>${paths||'<tr><td colspan="6">No arrivals. Try a later deadline, reopening roads, or adding shelter space.</td></tr>'}</tbody></table></div>`;
+  }
+  function renderAlgorithms(){
+    const traversal=state.origin?E.bfs(state.scenario,state.origin):null,routes=selectedRoutes(),r=state.result;
+    const routeTrace=routes?routes.shelters.map((s)=>`${escape(s.id)}: ${s.time===null?'unreachable':`${s.time} min (${s.nodes.map(escape).join(' → ')})`}`).join('<br>'):'Add an origin and a shelter.';
+    $('panel-algorithms').innerHTML=`<div class="algorithm-grid"><article class="algorithm-block"><span class="mini-label">01 / REACHABILITY</span><h3>Breadth-first search</h3><p>Starting from ${escape(state.origin?name(state.origin):'an origin')}, visit each reachable location through open roads.</p><div class="trace">${traversal?traversal.order.map(escape).join(' → '):'No origin selected.'}</div><p>Queue + adjacency lists. Closed roads are excluded; one-way roads keep their direction.</p><span class="formula">O(V + E) time · O(V + E) space</span></article><article class="algorithm-block"><span class="mini-label">02 / FASTEST ROUTES</span><h3>Dijkstra’s algorithm</h3><p>A binary min-heap explores the next smallest travel time. These paths do not account for queues.</p><div class="trace">${routeTrace||'No shelter with positive capacity.'}</div><p>All road travel times are positive integers. Stale heap entries are skipped.</p><span class="formula">O((V + E) log(V + E)) time</span></article><article class="algorithm-block"><span class="mini-label">03 / CAPACITY OVER TIME</span><h3>Edmonds–Karp max-flow</h3><p>Duplicate each location at each minute. Add travel edges, waiting edges, origin supply and shared shelter gates.</p><div class="trace">${r?`${r.stats.vertices} expanded vertices<br>${r.stats.edges} forward edges<br>${r.stats.augmentations} augmentations<br>Maximum arrivals: ${r.evacuated}`:'Calculate a plan to see the flow trace.'}</div><p>Binary search repeats max-flow to find the earliest deadline that accommodates everyone, up to 60 minutes.</p><span class="formula">O(V′ E′²) per flow solve<br>O(log H) solves for minimum time</span></article></div><p class="hint" style="margin-top:18px">A fastest individual route can have too little capacity for the whole population. The flow model may split groups across longer routes or wait before departing. It does not claim to minimize aggregate travel time or equalize service across origins.</p>`;
+  }
+  function renderEditor(){
+    const locations=state.scenario.nodes.map((n)=>`<tr><td class="mono">${escape(n.id)}</td><td>${escape(n.name)}</td><td>${escape(n.type)}</td><td>${n.type==='origin'?n.population:n.type==='shelter'?n.capacity:'—'}</td><td><button class="button secondary" data-edit-node="${escape(n.id)}">Edit</button></td><td><button class="button quiet danger" data-delete-node="${escape(n.id)}" aria-label="Delete ${escape(n.name)}">Remove</button></td></tr>`).join('');
+    const roads=state.scenario.roads.map((r)=>`<tr><td class="mono">${escape(r.id)}</td><td>${escape(r.from)} ${r.bidirectional?'↔':'→'} ${escape(r.to)}</td><td>${r.time} min</td><td>${r.capacity} / min / direction</td><td><span class="tag ${r.blocked?'closed':''}">${r.blocked?'Closed':'Open'}</span></td><td><button class="button secondary" data-edit-road="${escape(r.id)}">Edit</button></td><td><button class="button quiet danger" data-delete-road="${escape(r.id)}" aria-label="Delete road ${escape(r.id)}">Remove</button></td></tr>`).join('');
+    $('panel-editor').innerHTML=`<div class="editor-top"><div><h3>Make the network your own.</h3><p class="result-subtitle">Add locations and roads, or edit population, shelter space and map positions. Save your network as JSON.</p></div><div class="editor-buttons"><button class="button secondary small" id="add-node">+ Location</button><button class="button primary small" id="add-road">+ Road</button></div></div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Location</th><th>Type</th><th>People / spaces</th><th></th><th></th></tr></thead><tbody>${locations}</tbody></table></div><div class="table-heading"><h3>Roads</h3><span class="hint">Two-way capacities are independent in each direction.</span></div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Connection</th><th>Travel time</th><th>Capacity</th><th>Status</th><th></th><th></th></tr></thead><tbody>${roads||'<tr><td colspan="7">Add a road to connect your locations.</td></tr>'}</tbody></table></div>`;
+  }
+  function render(){
+    $('scenario-description').textContent=state.scenario.description;
+    $('deadline').value=state.deadline;$('deadline-output').textContent=`${state.deadline} min`;
+    $('timeline').max=state.deadline;
+    const origins=state.scenario.nodes.filter((n)=>n.type==='origin');
+    if(!origins.some((n)=>n.id===state.origin))state.origin=origins[0]?.id||null;
+    $('origin-select').innerHTML=origins.map((n)=>`<option value="${escape(n.id)}">${escape(n.name)}</option>`).join('')||'<option>No origin</option>';
+    if(state.origin)$('origin-select').value=state.origin;
+    renderMetrics();renderInspector();renderMap();renderSummary();renderAlgorithms();renderEditor();
+  }
+
+  function run(){
+    state.version++;const version=state.version;stopWorker();pause();state.time=0;state.result=null;state.pending=true;
+    $('run-button').disabled=true;$('run-button').textContent='Calculating…';message('');render();
+    const payload={scenario:clone(state.scenario),base:clone(state.base),deadline:state.deadline};
+    const finish=(data)=>{
+      if(version!==state.version)return;stopWorker();state.pending=false;$('run-button').disabled=false;$('run-button').textContent='↗ Calculate evacuation';
+      if(!data.ok){message(data.error||'The plan could not be calculated.',true);render();return;}
+      state.result=data.result;state.baseline=data.baseline;state.time=0;render();
+      message(`Plan ready: ${fmt(data.result.evacuated)} of ${fmt(data.result.total)} people arrive within ${state.deadline} minutes.`);
+    };
+    const fallback=()=>setTimeout(()=>{try{finish({ok:true,result:E.analyze(payload.scenario,payload.deadline),baseline:E.solveDeadline(payload.base,payload.deadline,false)});}catch(error){finish({ok:false,error:error.message});}},20);
+    try{
+      if(!window.Worker){fallback();return;}
+      const code=`const E=(${window.createEvacuationEngine.toString()})();onmessage=({data})=>{try{postMessage({ok:true,result:E.analyze(data.scenario,data.deadline),baseline:E.solveDeadline(data.base,data.deadline,false)});}catch(error){postMessage({ok:false,error:error.message});}};`;
+      state.workerURL=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));state.worker=new Worker(state.workerURL);
+      state.worker.onmessage=(event)=>finish(event.data);
+      state.worker.onerror=(event)=>{event.preventDefault();stopWorker();fallback();};state.worker.postMessage(payload);
+    }catch{stopWorker();fallback();}
+  }
+
+  function renderPlayback(){
+    const r=state.result,time=Math.min(state.time,state.deadline),whole=Math.min(Math.floor(time+1e-8),state.deadline);
+    $('timeline').value=time;$('time-caption').textContent=`Minute ${time.toFixed(time%1?1:0)} / ${state.deadline}`;
+    $('safe-caption').textContent=`${fmt(r?r.cumulative[whole]:0)} people at shelters`;
+    const layer=$('people-layer');if(!layer)return;
+    if(!r){layer.innerHTML='';return;}
+    let markers='';const waiting=Object.create(null);
+    for(const p of r.paths){
+      if(time>=p.arrival)continue;
+      const step=p.steps.find((s)=>s.start<=time&&time<s.end);if(!step)continue;
+      if(step.type==='wait'){waiting[step.at]=(waiting[step.at]||0)+p.people;continue;}
+      const road=state.scenario.roads.find((road)=>road.id===step.road),g=roadGeometry(road);
+      let fraction=(time-step.start)/(step.end-step.start);if(road.from!==step.from)fraction=1-fraction;
+      const pos=point(g,fraction),radius=Math.min(8,3+Math.sqrt(p.people)*.6);
+      markers+=`<circle cx="${pos.x}" cy="${pos.y}" r="${radius}" fill="#d99041" stroke="#fff" stroke-width="2"><title>${p.people} people · ${escape(step.road)} · ${escape(name(p.shelter))}</title></circle>`;
+    }
+    for(const [id,count]of Object.entries(waiting)){
+      const n=state.scenario.nodes.find((n)=>n.id===id);
+      markers+=`<g transform="translate(${n.x+20},${n.y-23})"><rect x="-12" y="-9" width="30" height="18" rx="8" fill="#fff3d7" stroke="#e3c98f"/><text x="3" y="3" text-anchor="middle" font-size="9" fill="#987035">${count}</text></g>`;
+    }
+    layer.innerHTML=markers;
+  }
+  function tick(now){
+    if(!state.playing)return;const delta=state.lastFrame?(now-state.lastFrame)/1000:0;state.lastFrame=now;
+    state.time=Math.min(state.deadline,state.time+delta*Number($('playback-speed').value));renderPlayback();
+    if(state.time>=state.deadline){pause();return;}state.animation=requestAnimationFrame(tick);
+  }
+  function selectTab(tab,focus=false){
+    document.querySelectorAll('.tab').forEach((button)=>{const selected=button.dataset.tab===tab;button.classList.toggle('active',selected);button.setAttribute('aria-selected',selected);button.tabIndex=selected?0:-1;if(selected&&focus)button.focus();});
+    document.querySelectorAll('.tab-panel').forEach((panel)=>panel.hidden=panel.id!==`panel-${tab}`);
+  }
+  function nextId(prefix,items){let n=1;while(items.some((item)=>item.id===prefix+n))n++;return prefix+n;}
+  function openEditor(kind,id=null){
+    state.editing={kind,id};$('dialog-error').textContent='';
+    if(kind==='node'){
+      const n=id?state.scenario.nodes.find((n)=>n.id===id):{id:nextId('N',state.scenario.nodes),name:'New location',type:'junction',population:0,capacity:0,x:450,y:250};
+      $('dialog-title').textContent=id?'Edit location':'Add location';
+      $('dialog-fields').innerHTML=`<label for="edit-name">Location name</label><input id="edit-name" name="name" type="text" maxlength="60" required value="${escape(n.name)}"><label for="edit-type">Location type</label><select id="edit-type" name="type"><option value="origin" ${n.type==='origin'?'selected':''}>Residential area</option><option value="junction" ${n.type==='junction'?'selected':''}>Junction</option><option value="shelter" ${n.type==='shelter'?'selected':''}>Shelter</option></select><div class="field-pair"><div><label for="edit-population">Initial population</label><input id="edit-population" name="population" type="number" min="0" max="3000" required value="${n.population}"></div><div><label for="edit-capacity">Shelter spaces</label><input id="edit-capacity" name="capacity" type="number" min="0" max="3000" required value="${n.capacity}"></div></div><div class="field-pair"><div><label for="edit-x">Map X (45–855)</label><input id="edit-x" name="x" type="number" min="45" max="855" step="any" required value="${n.x}"></div><div><label for="edit-y">Map Y (50–450)</label><input id="edit-y" name="y" type="number" min="50" max="450" step="any" required value="${n.y}"></div></div><p class="hint tiny">Location ID: ${escape(n.id)}. Map coordinates only affect the drawing.</p>`;
+      const sync=()=>{$('edit-population').disabled=$('edit-type').value!=='origin';$('edit-capacity').disabled=$('edit-type').value!=='shelter';};$('edit-type').addEventListener('change',sync);sync();
+    }else{
+      if(state.scenario.nodes.length<2){message('Add at least two locations before adding a road.',true);return;}
+      const r=id?state.scenario.roads.find((r)=>r.id===id):{id:nextId('R',state.scenario.roads),from:state.scenario.nodes[0].id,to:state.scenario.nodes[1].id,time:2,capacity:10,blocked:false,bidirectional:true};
+      const options=(selected)=>state.scenario.nodes.map((n)=>`<option value="${escape(n.id)}" ${n.id===selected?'selected':''}>${escape(n.name)} (${escape(n.id)})</option>`).join('');
+      $('dialog-title').textContent=id?'Edit road':'Add road';
+      $('dialog-fields').innerHTML=`<label for="edit-from">From</label><select id="edit-from" name="from">${options(r.from)}</select><label for="edit-to">To</label><select id="edit-to" name="to">${options(r.to)}</select><div class="field-pair"><div><label for="edit-time">Travel time (min)</label><input id="edit-time" name="time" type="number" min="1" max="60" value="${r.time}" required></div><div><label for="edit-capacity">People / min / dir.</label><input id="edit-capacity" name="capacity" type="number" min="1" max="3000" value="${r.capacity}" required></div></div><div class="status-toggle"><label for="edit-two-way">Two-way road</label><input id="edit-two-way" name="bidirectional" type="checkbox" ${r.bidirectional?'checked':''}></div><div class="status-toggle"><label for="edit-blocked">Closed / damaged</label><input id="edit-blocked" name="blocked" type="checkbox" ${r.blocked?'checked':''}></div><p class="hint tiny">Road ID: ${escape(r.id)}. Two-way capacity is independent in each direction.</p>`;
+    }
+    $('edit-dialog').showModal();
+  }
+  function saveEditor(event){
+    event.preventDefault();const {kind,id}=state.editing,next=clone(state.scenario),data=new FormData($('edit-form'));let selection;
+    try{
+      if(kind==='node'){
+        const type=data.get('type');const n={id:id||nextId('N',next.nodes),name:data.get('name').trim(),type,population:type==='origin'?Number(data.get('population')):0,capacity:type==='shelter'?Number(data.get('capacity')):0,x:Number(data.get('x')),y:Number(data.get('y'))};
+        if(!n.name)throw new Error('Enter a location name.');if(id)next.nodes[next.nodes.findIndex((n)=>n.id===id)]=n;else next.nodes.push(n);selection={kind:'node',id:n.id};
+      }else{
+        const r={id:id||nextId('R',next.roads),from:data.get('from'),to:data.get('to'),time:Number(data.get('time')),capacity:Number(data.get('capacity')),bidirectional:data.has('bidirectional'),blocked:data.has('blocked')};
+        if(id)next.roads[next.roads.findIndex((r)=>r.id===id)]=r;else next.roads.push(r);selection={kind:'road',id:r.id};
+      }
+      state.scenario=E.validate(next);state.selection=selection;$('edit-dialog').close();invalidate();
+    }catch(error){$('dialog-error').textContent=error.message;}
+  }
+  function removeItem(kind,id){
+    const next=clone(state.scenario);
+    if(kind==='node'){next.nodes=next.nodes.filter((n)=>n.id!==id);next.roads=next.roads.filter((r)=>r.from!==id&&r.to!==id);}else next.roads=next.roads.filter((r)=>r.id!==id);
+    try{state.scenario=E.validate(next);if(state.selection?.id===id&&state.selection.kind===kind)state.selection=null;invalidate(kind==='node'?'Location and connected roads removed. Calculate a new plan.':undefined);}catch(error){message(error.message,true);}
+  }
+  function download(filename,content,type){
+    const url=URL.createObjectURL(new Blob([content],{type})),link=document.createElement('a');link.href=url;link.download=filename;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }
+  function exportSchedule(){
+    if(!state.result)return;
+    const cell=(value)=>'"'+String(value).replace(/^[=+@-]/,"'$&").replace(/"/g,'""')+'"';
+    const rows=[['group','people','origin','shelter','arrival_minute','steps']];
+    state.result.paths.forEach((p,i)=>rows.push([i+1,p.people,name(p.origin),name(p.shelter),p.arrival,p.steps.map((s)=>s.type==='wait'?`wait at ${s.at} [${s.start},${s.end}]`:`${s.road}: ${s.from} -> ${s.to} [${s.start},${s.end}]`).join('; ')]));
+    download('saferoute-evacuation-schedule.csv','\uFEFF'+rows.map((row)=>row.map(cell).join(',')).join('\r\n'),'text/csv;charset=utf-8');
+  }
+
+  $('scenario-select').innerHTML=window.EVACUATION_SCENARIOS.map((s,i)=>`<option value="${i}">${escape(s.name)}</option>`).join('');
+  $('scenario-select').addEventListener('change',()=>{
+    if($('scenario-select').value==='custom'){if(state.imported)setScenario(state.imported);return;}
+    const index=Number($('scenario-select').value);if(Number.isNaN(index))return;
+    if(index===3)state.deadline=3;else state.deadline=12;
+    setScenario(window.EVACUATION_SCENARIOS[index]);
+  });
+  $('deadline').addEventListener('input',()=>{state.deadline=Number($('deadline').value);invalidate('Deadline changed. Calculate a new evacuation plan.');});
+  $('run-button').addEventListener('click',run);
+  $('reset-button').addEventListener('click',()=>setScenario(state.base));
+  $('origin-select').addEventListener('change',()=>{state.origin=$('origin-select').value;renderMap();renderAlgorithms();});
+  const selectMapItem=(target)=>{const item=target.closest('[data-kind]');if(!item)return;state.selection={kind:item.dataset.kind,id:item.dataset.id};if(item.dataset.kind==='node'&&state.scenario.nodes.find((n)=>n.id===item.dataset.id)?.type==='origin'){state.origin=item.dataset.id;$('origin-select').value=state.origin;renderAlgorithms();}renderInspector();renderMap();};
+  $('network-map').addEventListener('click',(event)=>selectMapItem(event.target));
+  $('network-map').addEventListener('keydown',(event)=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selectMapItem(event.target);}});
+  $('play-button').addEventListener('click',()=>{if(state.playing){pause();return;}if(!state.result)return;if(state.time>=state.deadline)state.time=0;state.playing=true;state.lastFrame=0;$('play-button').textContent='Ⅱ';$('play-button').setAttribute('aria-label','Pause evacuation');state.animation=requestAnimationFrame(tick);});
+  $('timeline').addEventListener('input',()=>{pause();state.time=Number($('timeline').value);renderPlayback();});
+  document.querySelectorAll('.tab').forEach((button)=>{
+    button.addEventListener('click',()=>selectTab(button.dataset.tab));
+    button.addEventListener('keydown',(event)=>{const tabs=[...document.querySelectorAll('.tab')],i=tabs.indexOf(button);if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();selectTab(tabs[(i+(event.key==='ArrowRight'?1:tabs.length-1))%tabs.length].dataset.tab,true);}});
+  });
+  $('help-button').addEventListener('click',()=>{selectTab('guide');$('panel-guide').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});});
+  document.addEventListener('click',(event)=>{
+    const button=event.target.closest('button');if(!button)return;
+    if(button.dataset.editNode)openEditor('node',button.dataset.editNode);
+    if(button.dataset.editRoad)openEditor('road',button.dataset.editRoad);
+    if(button.dataset.deleteNode)removeItem('node',button.dataset.deleteNode);
+    if(button.dataset.deleteRoad)removeItem('road',button.dataset.deleteRoad);
+    if(button.id==='add-node')openEditor('node');if(button.id==='add-road')openEditor('road');
+  });
+  $('edit-form').addEventListener('submit',saveEditor);
+  $('close-dialog').addEventListener('click',()=>$('edit-dialog').close());$('cancel-dialog').addEventListener('click',()=>$('edit-dialog').close());
+  $('export-button').addEventListener('click',()=>download('saferoute-network.json',JSON.stringify(state.scenario,null,2),'application/json'));
+  $('download-results').addEventListener('click',exportSchedule);
+  $('import-button').addEventListener('click',()=>$('import-file').click());
+  $('import-file').addEventListener('change',async(event)=>{
+    const file=event.target.files[0];if(!file)return;
+    try{if(file.size>200000)throw new Error('Use a JSON file smaller than 200 KB.');const scenario=E.validate(JSON.parse(await file.text()));
+      state.imported=clone(scenario);let option=$('scenario-select').querySelector('[value="custom"]');if(!option){option=document.createElement('option');option.value='custom';$('scenario-select').append(option);}option.textContent='Imported: '+scenario.name;$('scenario-select').value='custom';setScenario(scenario);
+    }catch(error){message('Import failed: '+error.message,true);}finally{event.target.value='';}
+  });
+  window.addEventListener('beforeunload',stopWorker);
+  render();run();
+})();
+
+</script>
+</body>
+</html>

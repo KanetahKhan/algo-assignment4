@@ -1,0 +1,35 @@
+{
+  "name": "Small example · 10 people",
+  "description": "One road, 3 people per minute, 2 minutes of travel. Six people arrive by minute 3; everyone can arrive by minute 5.",
+  "nodes": [
+    {
+      "id": "A",
+      "name": "Residential block",
+      "x": 190,
+      "y": 250,
+      "type": "origin",
+      "population": 10,
+      "capacity": 0
+    },
+    {
+      "id": "S",
+      "name": "Safe assembly area",
+      "x": 700,
+      "y": 250,
+      "type": "shelter",
+      "population": 0,
+      "capacity": 10
+    }
+  ],
+  "roads": [
+    {
+      "id": "R1",
+      "from": "A",
+      "to": "S",
+      "time": 2,
+      "capacity": 3,
+      "blocked": false,
+      "bidirectional": false
+    }
+  ]
+}

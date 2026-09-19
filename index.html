@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#143d38">
+  <title>SafeRoute · Earthquake Evacuation Simulator</title>
+  <link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 18V9a4 4 0 0 1 8 0v6a3 3 0 0 0 6 0V6M16 9l3-3 3 3"/></svg></span><span>SafeRoute<span class="brand-sub">EVACUATION LAB</span></span></a>
+    <div class="header-right"><span class="offline-pill"><i></i> Works offline</span><button class="button quiet" id="help-button">How it works <span aria-hidden="true">↗</span></button></div>
+  </header>
+  <main>
+    <div class="page-heading"><div><p class="eyebrow">CSE 4403 / ALGORITHMS PROJECT</p><h1>A clearer path to safety.</h1><p class="subtitle">Explore how damaged roads, travel time, and shelter space shape an evacuation.</p></div><span class="simulation-badge">SIMULATED DISTRICT</span></div>
+    <div id="message" role="status" aria-live="polite" hidden></div>
+    <section class="metrics" aria-label="Evacuation results">
+      <article class="metric"><div class="metric-label">People to evacuate <span class="metric-icon">◎</span></div><strong id="metric-population">180</strong><span id="population-caption">Across 3 residential areas</span></article>
+      <article class="metric highlighted"><div class="metric-label" id="evacuated-label">Evacuated by deadline <span class="metric-icon">↗</span></div><strong id="metric-evacuated">—</strong><span id="evacuated-caption">Run a plan to see results</span></article>
+      <article class="metric"><div class="metric-label">Still needing evacuation <span class="metric-icon">◷</span></div><strong id="metric-remaining">—</strong><span id="remaining-caption">Includes waiting and isolated people</span></article>
+      <article class="metric"><div class="metric-label">Earliest full evacuation <span class="metric-icon">◴</span></div><strong id="metric-completion">—</strong><span id="completion-caption">Minimum feasible time under this model</span></article>
+    </section>
+    <div class="workspace">
+      <aside class="control-panel card">
+        <div class="section-title"><span class="step-number">01</span><h2>Set the scenario</h2></div>
+        <label for="scenario-select">Sample network</label><select id="scenario-select"></select>
+        <p id="scenario-description" class="hint description"></p>
+        <div class="label-row"><label for="deadline">Evacuation deadline</label><output id="deadline-output" for="deadline">12 min</output></div>
+        <input type="range" id="deadline" min="1" max="60" value="12"><div class="range-labels"><span>1 minute</span><span>60 minutes</span></div>
+        <button id="run-button" class="button primary full"><span aria-hidden="true">↗</span> Calculate evacuation</button>
+        <button id="reset-button" class="button quiet full small">↺ Reset current scenario</button>
+        <div class="divider"></div>
+        <div class="section-title"><span class="step-number">02</span><h2>Explore the network</h2></div>
+        <p class="hint">Select a road to close it or change its capacity. Select a location to inspect or edit it.</p>
+        <div id="inspector" class="inspector"></div>
+        <div class="divider"></div>
+        <div class="data-actions"><button id="import-button" class="button secondary small">↑ Import JSON</button><button id="export-button" class="button secondary small">↓ Save network</button></div>
+        <input type="file" id="import-file" accept=".json,application/json" hidden>
+        <p class="hint tiny">Synthetic data · integer minutes · no installation or internet needed.</p>
+      </aside>
+      <section class="map-card card" aria-labelledby="map-title">
+        <div class="map-heading"><div><p class="eyebrow">LIVE NETWORK</p><h2 id="map-title">District network</h2></div><span id="network-chip" class="chip">8 locations · 10 roads</span></div>
+        <div class="map-toolbar"><div class="legend"><span><i class="origin-dot"></i> Residential</span><span><i class="shelter-dot"></i> Shelter</span><span><i class="blocked-line"></i> Closed road</span></div><label class="route-picker">Route from <select id="origin-select" aria-label="Shortest-path origin"></select></label></div>
+        <div class="map-wrap"><svg id="network-map" viewBox="0 0 900 500" role="group" aria-label="Interactive synthetic evacuation network"></svg><div id="map-note" class="map-note">Select a road or a location</div></div>
+        <div class="route-summary" id="route-summary"></div>
+        <div class="playback"><button class="play-button" id="play-button" aria-label="Play evacuation" disabled>▶</button><div class="timeline"><div class="timeline-label"><strong id="time-caption">Minute 0 / 12</strong><span id="safe-caption">0 people at shelters</span></div><input id="timeline" type="range" min="0" max="12" step="0.05" value="0" disabled aria-label="Evacuation playback time"></div><select id="playback-speed" aria-label="Playback speed"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option></select></div>
+      </section>
+    </div>
+    <section class="results-card card" aria-label="Analysis and network editor">
+      <div class="results-top"><div class="tabs" role="tablist" aria-label="Result views"><button class="tab active" id="tab-summary" data-tab="summary" role="tab" aria-selected="true" aria-controls="panel-summary">Plan summary</button><button class="tab" id="tab-algorithms" data-tab="algorithms" role="tab" aria-selected="false" aria-controls="panel-algorithms" tabindex="-1">Algorithm trace</button><button class="tab" id="tab-editor" data-tab="editor" role="tab" aria-selected="false" aria-controls="panel-editor" tabindex="-1">Network editor</button><button class="tab" id="tab-guide" data-tab="guide" role="tab" aria-selected="false" aria-controls="panel-guide" tabindex="-1">Model & demo</button></div><button id="download-results" class="button secondary small" disabled>↓ Export schedule</button></div>
+      <div id="panel-summary" class="tab-panel" role="tabpanel" aria-labelledby="tab-summary"></div>
+      <div id="panel-algorithms" class="tab-panel" role="tabpanel" aria-labelledby="tab-algorithms" hidden></div>
+      <div id="panel-editor" class="tab-panel" role="tabpanel" aria-labelledby="tab-editor" hidden></div>
+      <div id="panel-guide" class="tab-panel" role="tabpanel" aria-labelledby="tab-guide" hidden>
+        <div class="guide-grid"><article><span class="mini-label">THE THREE CORE ALGORITHMS</span><h3>From a road network to a feasible plan.</h3><ol class="guide-list"><li><strong>BFS checks reachability.</strong> Closed roads are removed. A traversal identifies which locations remain reachable from each residential area.</li><li><strong>Dijkstra finds a fastest route.</strong> Road travel time is the nonnegative edge weight. This route assumes no queue and does not reserve capacity.</li><li><strong>Edmonds–Karp allocates people over time.</strong> A copy of every location is created for each minute. Road edges advance time; waiting edges allow queues. Max-flow finds the maximum number who arrive by the deadline.</li><li><strong>Binary search finds the earliest full evacuation.</strong> The solver searches deadlines up to 60 minutes. More time never reduces the number who can arrive.</li></ol></article><article><span class="mini-label">MODEL ASSUMPTIONS</span><h3>What the numbers mean.</h3><ul class="guide-list"><li>Road capacity is <strong>people entering per minute, per direction</strong>. A two-way road has independent capacity in each direction.</li><li>Travel takes a fixed, whole number of minutes. Departures begin at minute 0. Arrival exactly at the deadline counts.</li><li>Shelter capacity is <strong>total space</strong>, shared across all arrival times. It does not reset every minute.</li><li>People may wait at locations. Waiting space is unlimited; no road-occupancy, panic, hazard-spread, or intersection-capacity model is included.</li><li>Edits create a new plan starting at minute 0. Playback visualizes that plan; it does not model a mid-journey aftershock.</li><li>The objective is maximum arrivals by a deadline. It does not optimize fairness or total travel time among equally good plans.</li></ul></article></div>
+        <div class="demo-callout"><div><span class="mini-label">A QUICK CLASSROOM DEMO</span><h3>Make the algorithms visible.</h3></div><p>1. Run the campus scenario and play the plan. 2. Close road R6 and calculate again. 3. Show the shortest route and the new arrival count. 4. Try “Shelters at capacity” to show why more time cannot fix missing shelter space. 5. Finish with the 10-person example: deadline 3 → 6 arrivals; earliest full evacuation → 5 minutes.</p></div>
+        <p class="hint">Educational simulation using synthetic data, not an operational emergency-routing service. Limits: 20 locations, 60 roads, 3,000 people, 60 minutes.</p>
+      </div>
+    </section>
+    <footer><span><strong>SafeRoute</strong> · Built to make graph algorithms visible.</span><span>BFS <i>·</i> Dijkstra <i>·</i> Edmonds–Karp</span></footer>
+  </main>
+  <dialog id="edit-dialog" aria-labelledby="dialog-title"><form id="edit-form"><div class="dialog-heading"><h2 id="dialog-title">Edit location</h2><button type="button" id="close-dialog" class="button quiet" aria-label="Close editor">✕</button></div><div id="dialog-fields"></div><p id="dialog-error" class="form-error" role="alert"></p><div class="dialog-actions"><button type="button" id="cancel-dialog" class="button secondary">Cancel</button><button type="submit" class="button primary">Save changes</button></div></form></dialog>
+  <noscript><p class="noscript">Enable JavaScript in your browser to run the evacuation simulator.</p></noscript>
+  <script src="src/engine.js"></script>
+  <script src="src/scenarios.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>

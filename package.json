@@ -1,0 +1,8 @@
+{
+  "name": "saferoute-earthquake-evacuation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline CSE 4403 evacuation simulator with BFS, Dijkstra and time-expanded Edmonds–Karp flow",
+  "scripts": { "test": "node --test tests/engine.test.js", "cli": "node cli.js", "build": "node tools/build.js" },
+  "engines": { "node": ">=18" }
+}
