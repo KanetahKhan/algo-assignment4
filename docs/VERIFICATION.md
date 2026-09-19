@@ -2,24 +2,37 @@
 
 Validation performed on 19 September 2026.
 
-## Automated algorithm tests: 14 passed
+## C++ algorithm tests: 15 passed
 
-Run `node --test tests/engine.test.js` with Node.js 18 or newer. No installation or external dependencies are required for this suite.
+Build and run with `build_cpp.bat` (Windows) or `make test`. Verified with g++ 13.1 (MinGW-w64) with `-Wall -Wextra`: no warnings.
 
-The tests cover a known max-flow result of 23; reverse-edge rerouting; per-minute entry capacities and nonzero travel time; total shelter space across all minutes; blocked roads; one-way direction; weighted shortest paths; parallel roads; multiple origins sharing shelter space; zero population; distinguishing the 60-minute search limit from infeasibility; disconnected spare shelter capacity; schedule conservation and per-departure limits; and invalid input.
+`tests/engine_test.cpp` covers:
 
-For every built-in scenario, the schedule tests check all group origins, destinations, ordered travel/waiting times, route directions, road capacities and shelter capacities. Group sizes and arrivals sum to the returned maximum flow. Deadline results are also checked for monotonicity.
+- **Max-flow basics:** a known max-flow result of 23, and reverse-edge rerouting.
+- **Time and capacity rules:** per-minute entry capacities with nonzero travel time; total shelter space across all minutes; parallel roads; multiple origins sharing shelter space; zero population.
+- **Road network rules:** blocked roads, one-way direction, and weighted (not hop-count) shortest paths.
+- **Search limits:** telling the 60-minute search limit apart from infeasibility; disconnected spare shelter capacity.
+- **Schedules and input:** schedule conservation and per-departure limits; invalid input.
+- **Sample outputs:** all four sample scenarios produce the documented results in the table below.
+
+For every built-in scenario, the schedule test checks each group's origin, destination, ordered travel and waiting times, and route direction, along with road and shelter capacities. Group sizes and arrivals sum to the returned maximum flow. Deadline results are also checked for monotonicity.
+
+## WebAssembly build: 5 bridge tests passed
+
+`node --test tests/engine.test.js` loads the C++ engine compiled by Emscripten 6.0.9 and calls it through `src/engine.js`, exactly as the browser does. It checks the sample results, BFS/Dijkstra/schedule output formats, input normalization and C++ error messages.
+
+The C++ engine was also compared with the previous JavaScript implementation on the 4 samples plus 300 random networks (up to 12 locations and 60 roads). All 6,384 maximum-flow values matched, along with every arrival count, shelter allocation, group schedule, shortest distance, BFS result and earliest-evacuation time. The only differences came from ties between equally short Dijkstra routes. With equal distances, `std::priority_queue` sometimes finalizes locations in a different order and picks a different route of the same length (6 of 304 networks).
 
 ## Independent reference check: 2,196 flow comparisons passed
 
-`tests/reference_check.py` builds time-expanded networks with a different vertex indexing scheme and compares the JavaScript Edmonds–Karp solver with SciPy's Dinic implementation.
+`tests/reference_check.py` builds time-expanded networks with a different vertex indexing scheme and compares the C++ Edmonds–Karp solver (WebAssembly build, run through Node.js) with SciPy's Dinic implementation.
 
 - 4 supplied examples + 32 randomly generated networks, seed 4403.
 - Every deadline from 0 through 60, inclusive: 36 × 61 = 2,196 comparisons.
 - Earliest-full-evacuation results compared against exhaustive deadline enumeration.
 - Every origin-to-location shortest-path distance compared against an independent Floyd–Warshall calculation.
 
-All comparisons passed. This validates the implemented discrete-time formulation against a separate flow algorithm; it does not validate the assumptions against real evacuation behavior.
+All comparisons passed (SciPy 1.16.3). This validates the implemented discrete-time formulation against a separate flow algorithm; it does not validate the assumptions against real evacuation behavior.
 
 To rerun this optional reference suite, install SciPy into your Python environment and run `python tests/reference_check.py`. Node.js must also be on PATH. These dependencies are only for the optional reference check, not for using the app.
 
@@ -29,7 +42,7 @@ To rerun this optional reference suite, install SciPy into your Python environme
 
 To reproduce these optional tests, install jsdom in a separate test environment, then set `SAFEROUTE_JSDOM_MODULE` to its absolute module path and run `node --test tests/ui.test.cjs`. Alternatively, install jsdom locally with `npm install --no-save --package-lock=false jsdom` and run the test. This optional dependency is not shipped or needed by the app. A recent Node.js version supported by the installed jsdom release is required.
 
-DOM tests used the main-thread solver fallback, with simulated download and dialog APIs. They do not verify physical layout, native browser download behavior, native Web Worker behavior, or animation appearance.
+These DOM tests run the standalone HTML, including the C++ engine compiled to WebAssembly, with simulated download and dialog APIs. They do not verify physical layout, native browser download behavior, or animation appearance.
 
 ## Visual browser check: not completed
 

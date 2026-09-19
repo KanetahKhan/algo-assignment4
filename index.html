@@ -10,7 +10,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="#"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 18V9a4 4 0 0 1 8 0v6a3 3 0 0 0 6 0V6M16 9l3-3 3 3"/></svg></span><span>SafeRoute<span class="brand-sub">EVACUATION LAB</span></span></a>
-    <div class="header-right"><span class="offline-pill"><i></i> Works offline</span><button class="button quiet" id="help-button">How it works <span aria-hidden="true">↗</span></button></div>
+    <div class="header-right"><span class="offline-pill"><i></i> Works offline</span><a class="button quiet" href="walkthrough.html">C++ code walkthrough <span aria-hidden="true">→</span></a><button class="button quiet" id="help-button">How it works <span aria-hidden="true">↗</span></button></div>
   </header>
   <main>
     <div class="page-heading"><div><p class="eyebrow">CSE 4403 / ALGORITHMS PROJECT</p><h1>A clearer path to safety.</h1><p class="subtitle">Explore how damaged roads, travel time, and shelter space shape an evacuation.</p></div><span class="simulation-badge">SIMULATED DISTRICT</span></div>
@@ -58,10 +58,11 @@
         <p class="hint">Educational simulation using synthetic data, not an operational emergency-routing service. Limits: 20 locations, 60 roads, 3,000 people, 60 minutes.</p>
       </div>
     </section>
-    <footer><span><strong>SafeRoute</strong> · Built to make graph algorithms visible.</span><span>BFS <i>·</i> Dijkstra <i>·</i> Edmonds–Karp</span></footer>
+    <footer><span><strong>SafeRoute</strong> · Built to make graph algorithms visible.</span><span>BFS <i>·</i> Dijkstra <i>·</i> Edmonds–Karp <i>·</i> C++ engine (WebAssembly)</span></footer>
   </main>
   <dialog id="edit-dialog" aria-labelledby="dialog-title"><form id="edit-form"><div class="dialog-heading"><h2 id="dialog-title">Edit location</h2><button type="button" id="close-dialog" class="button quiet" aria-label="Close editor">✕</button></div><div id="dialog-fields"></div><p id="dialog-error" class="form-error" role="alert"></p><div class="dialog-actions"><button type="button" id="cancel-dialog" class="button secondary">Cancel</button><button type="submit" class="button primary">Save changes</button></div></form></dialog>
   <noscript><p class="noscript">Enable JavaScript in your browser to run the evacuation simulator.</p></noscript>
+  <script src="src/saferoute_wasm.js"></script>
   <script src="src/engine.js"></script>
   <script src="src/scenarios.js"></script>
   <script src="src/app.js"></script>

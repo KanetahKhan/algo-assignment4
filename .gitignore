@@ -1,0 +1,6 @@
+# Compiled programs and generated output
+*.exe
+saferoute
+engine_test
+result.json
+node_modules/

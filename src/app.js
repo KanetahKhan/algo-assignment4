@@ -1,4 +1,5 @@
-(function () {
+// Starts once the C++ engine (WebAssembly) has loaded; see src/engine.js.
+window.Evacuation.ready.then(function () {
   'use strict';
   const E = window.Evacuation, $ = (id) => document.getElementById(id);
   const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -6,7 +7,7 @@
   const fmt = (n) => Number(n).toLocaleString('en-US');
   const state = { scenario: E.validate(clone(window.EVACUATION_SCENARIOS[0])), base: null,
     selection: { kind: 'road', id: 'R6' }, origin: 'A', deadline: 12, result: null, baseline: null,
-    time: 0, playing: false, lastFrame: 0, animation: 0, worker: null, workerURL: null, version: 0, pending: false, editing: null, imported: null };
+    time: 0, playing: false, lastFrame: 0, animation: 0, version: 0, pending: false, editing: null, imported: null };
   state.base = clone(state.scenario);
   const name = (id) => state.scenario.nodes.find((n) => n.id === id)?.name || id;
   const total = () => state.scenario.nodes.reduce((s, n) => s + n.population, 0);
@@ -14,17 +15,12 @@
   function message(text, error = false) {
     $('message').textContent = text; $('message').hidden = !text; $('message').className = error ? 'error' : '';
   }
-  function stopWorker() {
-    if (state.worker) state.worker.terminate();
-    if (state.workerURL) URL.revokeObjectURL(state.workerURL);
-    state.worker = null; state.workerURL = null;
-  }
   function pause() {
     state.playing = false; cancelAnimationFrame(state.animation);
     $('play-button').textContent = '▶'; $('play-button').setAttribute('aria-label', 'Play evacuation');
   }
   function invalidate(text = 'Network updated. Calculate evacuation to generate a new plan.') {
-    state.version++; stopWorker(); pause(); state.result = null; state.baseline = null; state.pending = false; state.time = 0;
+    state.version++; pause(); state.result = null; state.baseline = null; state.pending = false; state.time = 0;
     $('run-button').disabled = false; $('run-button').textContent = '↗ Calculate evacuation';
     render(); if (text) message(text);
   }
@@ -145,23 +141,17 @@
   }
 
   function run(){
-    state.version++;const version=state.version;stopWorker();pause();state.time=0;state.result=null;state.pending=true;
+    state.version++;const version=state.version;pause();state.time=0;state.result=null;state.pending=true;
     $('run-button').disabled=true;$('run-button').textContent='Calculating…';message('');render();
     const payload={scenario:clone(state.scenario),base:clone(state.base),deadline:state.deadline};
     const finish=(data)=>{
-      if(version!==state.version)return;stopWorker();state.pending=false;$('run-button').disabled=false;$('run-button').textContent='↗ Calculate evacuation';
+      if(version!==state.version)return;state.pending=false;$('run-button').disabled=false;$('run-button').textContent='↗ Calculate evacuation';
       if(!data.ok){message(data.error||'The plan could not be calculated.',true);render();return;}
       state.result=data.result;state.baseline=data.baseline;state.time=0;render();
       message(`Plan ready: ${fmt(data.result.evacuated)} of ${fmt(data.result.total)} people arrive within ${state.deadline} minutes.`);
     };
-    const fallback=()=>setTimeout(()=>{try{finish({ok:true,result:E.analyze(payload.scenario,payload.deadline),baseline:E.solveDeadline(payload.base,payload.deadline,false)});}catch(error){finish({ok:false,error:error.message});}},20);
-    try{
-      if(!window.Worker){fallback();return;}
-      const code=`const E=(${window.createEvacuationEngine.toString()})();onmessage=({data})=>{try{postMessage({ok:true,result:E.analyze(data.scenario,data.deadline),baseline:E.solveDeadline(data.base,data.deadline,false)});}catch(error){postMessage({ok:false,error:error.message});}};`;
-      state.workerURL=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));state.worker=new Worker(state.workerURL);
-      state.worker.onmessage=(event)=>finish(event.data);
-      state.worker.onerror=(event)=>{event.preventDefault();stopWorker();fallback();};state.worker.postMessage(payload);
-    }catch{stopWorker();fallback();}
+    // The C++ solver takes milliseconds; the short delay lets the "Calculating…" state paint first.
+    setTimeout(()=>{try{finish({ok:true,result:E.analyze(payload.scenario,payload.deadline),baseline:E.solveDeadline(payload.base,payload.deadline,false)});}catch(error){finish({ok:false,error:error.message});}},20);
   }
 
   function renderPlayback(){
@@ -281,6 +271,9 @@
       state.imported=clone(scenario);let option=$('scenario-select').querySelector('[value="custom"]');if(!option){option=document.createElement('option');option.value='custom';$('scenario-select').append(option);}option.textContent='Imported: '+scenario.name;$('scenario-select').value='custom';setScenario(scenario);
     }catch(error){message('Import failed: '+error.message,true);}finally{event.target.value='';}
   });
-  window.addEventListener('beforeunload',stopWorker);
   render();run();
-})();
+}).catch(function (error) {
+  const box = document.getElementById('message');
+  box.textContent = 'The C++ engine (WebAssembly) could not start: ' + error.message;
+  box.hidden = false; box.className = 'error';
+});

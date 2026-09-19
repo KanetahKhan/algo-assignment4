@@ -1,0 +1,1753 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#143d38">
+  <title>SafeRoute · C++ Code Walkthrough</title>
+  <style>
+    :root{--bg:#f5f6f2;--paper:#fff;--ink:#203730;--muted:#6f7a72;--line:#e5e9e2;--green:#215f50;--green-dark:#163f36;--green-pale:#eaf3ec;--orange:#df7844;--orange-pale:#fff0e5;--red:#c8514a;--purple:#6b4fb3;--purple-pale:#efeafa;--code-bg:#fbfcf9;--radius:16px;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg)}
+    *{box-sizing:border-box}body{margin:0;font-size:14px;background:var(--bg)}button,select,input{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}h1,h2,h3,p{margin:0}
+    button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,.ln:focus-visible{outline:3px solid #e3a563;outline-offset:2px}
+    .topbar{height:72px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:#fff}
+    .brand{display:flex;align-items:center;gap:10px;font-size:21px;font-weight:750;letter-spacing:-.8px}.brand-mark{width:36px;height:40px;border-radius:11px;background:var(--green);display:grid;place-items:center}.brand-mark svg{width:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.brand-sub{display:block;font-size:8px;letter-spacing:2.2px;color:var(--muted);margin-top:2px}
+    .button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:9px 14px;font-weight:600;font-size:13px;min-height:38px;display:inline-flex;align-items:center;gap:8px}.button:hover{background:var(--bg)}
+    main{max-width:1600px;margin:auto;padding:26px 32px 40px;min-width:0}
+    .eyebrow{font-size:9px;letter-spacing:1.9px;font-weight:650;color:var(--muted);margin-bottom:8px}h1{font-size:31px;letter-spacing:-1.3px;font-weight:640;line-height:1.2}.subtitle{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6;max-width:880px}.subtitle kbd{font-family:inherit;font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:#fff;color:var(--ink)}
+    .tabs{display:flex;gap:6px;margin:22px 0 14px;flex-wrap:wrap}.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;text-align:left;color:var(--muted);min-width:150px}.tab strong{display:block;color:var(--ink);font-size:13px;font-weight:650}.tab span{font-size:11px}.tab.active{background:var(--green-dark);border-color:var(--green-dark);color:#c2d8ca}.tab.active strong{color:#fff}
+    .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 3px 18px #20373006}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 16px;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+    .scene-controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px}.scene-controls label{display:flex;align-items:center;gap:7px;font-weight:600;font-size:11px;color:var(--muted)}.scene-controls select{border:1px solid #dfe5dc;border-radius:7px;padding:6px 8px;font-size:12px;color:var(--ink);background:#fff;max-width:250px}.scene-controls input[type=checkbox]{accent-color:var(--green);width:15px;height:15px}.hint{font-size:11px;color:var(--muted)}
+    .stepper{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.stepper button{border:1px solid var(--line);background:#fff;border-radius:8px;min-width:36px;height:34px;font-size:13px;color:var(--ink)}.stepper button:hover{background:var(--bg)}.stepper #play{background:var(--green);color:#fff;border-color:var(--green);min-width:74px;font-weight:600}.stepper input[type=range]{width:210px;accent-color:var(--green)}.counter{font-size:11px;color:var(--muted);min-width:98px;text-align:right;font-variant-numeric:tabular-nums}.stepper select{border:1px solid var(--line);border-radius:7px;height:34px;font-size:12px;background:#fff}
+    .layout{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);gap:18px;margin-top:14px;align-items:start}
+    .card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 18px 12px;border-bottom:1px solid var(--line)}.mini{font-size:9px;font-weight:650;color:var(--muted);letter-spacing:1.2px;display:block;margin-bottom:5px}.card-head h2{font-size:16px;font-weight:650;letter-spacing:-.3px}.card-head p{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.55}
+    .code-card{position:sticky;top:70px}
+    .code,.chip,.arr,.kv dd,.explain code,.subtitle code{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}
+    .code{font-family:"Cascadia Code",Consolas,"Courier New",monospace;font-size:12.5px;line-height:1.7;overflow:auto;max-height:calc(100vh - 190px);padding:8px 0;background:var(--code-bg);border-radius:0 0 var(--radius) var(--radius)}
+    .ln{display:grid;grid-template-columns:34px 38px minmax(0,1fr);white-space:pre;border-left:3px solid transparent;min-height:21px}.ln .no{color:#a7b0a6;text-align:right;padding-right:12px;user-select:none;font-size:11px}.ln .src{overflow:visible}.ln .hits{font-size:10px;color:#a7b0a6;text-align:right;padding-right:6px;align-self:center;font-family:Inter,"Segoe UI",sans-serif}.ln.current .hits{color:var(--green);font-weight:700}
+    .ln.runs{cursor:pointer}.ln.runs .no{color:#6f8a7a}.ln:hover{background:var(--orange-pale);border-left-color:var(--orange)}.ln.current{background:var(--green-pale);border-left-color:var(--green)}.ln.current .no{color:var(--green);font-weight:700}.ln.preview{background:var(--orange-pale);border-left-color:var(--orange)}.ln.current.preview{background:linear-gradient(90deg,var(--green-pale),var(--orange-pale))}
+    .tok-k{color:#7a3e9d;font-weight:600}.tok-t{color:#1f6f8b}.tok-f{color:#1d4f91}.tok-n{color:#b4541f}.tok-s{color:#a0522d}.tok-c{color:#8b958a;font-style:italic}
+    .visual-card{overflow:hidden}.check{font-size:10px;padding:5px 8px;border-radius:6px;background:var(--bg);color:var(--muted);white-space:nowrap;max-width:300px;white-space:normal;text-align:right}.check.ok{background:var(--green-pale);color:var(--green)}.check.bad{background:#fbeae6;color:var(--red)}
+    .explain{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}.explain>div{padding:12px 18px;min-height:96px}.explain>div+div{border-left:1px solid var(--line);background:#fcfdfb}.kicker{font-size:9px;font-weight:650;letter-spacing:1.1px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:6px}.explain p{font-size:12.5px;line-height:1.6}.explain code{font-family:"Cascadia Code",Consolas,monospace;font-size:11.5px;background:var(--bg);padding:1px 4px;border-radius:4px}.explain .preview-tag{color:var(--orange)}
+    #viz{display:block;width:100%;height:auto;background:#f9faf6;border-bottom:1px solid var(--line)}
+    .legend{display:flex;gap:14px;flex-wrap:wrap;padding:9px 18px;font-size:10px;color:var(--muted);border-bottom:1px solid var(--line)}.legend span{display:flex;align-items:center;gap:5px}.sw{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid}.sw.line{height:0;border-width:2px 0 0;border-radius:0;width:16px}
+    .panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;padding:14px 18px 18px}.panel{border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}.panel.wide{grid-column:1/-1}.panel h3{font-size:10px;font-weight:650;letter-spacing:.9px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}.panel .empty{font-size:11px;color:#a7b0a6}
+    .chips{display:flex;gap:5px;flex-wrap:wrap}.chip{font-family:"Cascadia Code",Consolas,monospace;font-size:11px;padding:3px 7px;border-radius:6px;background:var(--bg);border:1px solid var(--line)}.chip.hot{background:var(--orange-pale);border-color:#f0c3a6;color:#9a4f24}.chip.good{background:var(--green-pale);border-color:#cfe2d3;color:var(--green)}.chip.path{background:var(--purple-pale);border-color:#d6cbf0;color:var(--purple)}
+    .arr{border-collapse:collapse;font-family:"Cascadia Code",Consolas,monospace;font-size:11px;width:100%}.arr th{font-family:Inter,"Segoe UI",sans-serif;font-size:9px;color:var(--muted);font-weight:600;padding:3px 4px;text-align:center;background:#f7f9f4}.arr td{padding:4px;text-align:center;border:1px solid #eef1e9}.arr td.hot{background:var(--orange-pale);color:#9a4f24;font-weight:700}.arr td.good{background:var(--green-pale);color:var(--green)}.arr td.path{background:var(--purple-pale);color:var(--purple);font-weight:700}.arr td.dim{color:#b5bdb4}.arr.rows td{text-align:left}.scroll{max-height:230px;overflow:auto}
+    .kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:11.5px}.kv dt{color:var(--muted)}.kv dd{margin:0;font-family:"Cascadia Code",Consolas,monospace;font-weight:600}
+    svg text{font-family:Inter,"Segoe UI",Arial,sans-serif}
+    .edge{fill:none;stroke:#c9d2c6;stroke-width:2.2;stroke-linecap:round}.edge.tree{stroke:var(--green);stroke-width:4}.edge.active{stroke:var(--orange);stroke-width:4.5}.edge.skip{stroke:#b9c0b8;stroke-width:4}.edge.blocked{stroke:var(--red);stroke-width:2.2}.edge.path{stroke:var(--purple);stroke-width:5}.edge.flow{stroke:var(--green);}.edge.full{stroke:var(--green-dark)}.edge.residual{stroke:#a39bc0;stroke-width:1.6}.edge.new{stroke:var(--orange);stroke-width:3.5}.edge.faint{stroke:#dfe4dc;stroke-width:1.4}.edge.wait{stroke:#c9d2c6}.edge.travel{stroke:#8fae99;stroke-width:2.6}
+    .edge-hit{fill:none;stroke:transparent;stroke-width:16;cursor:pointer}.edge-hit:hover{stroke:#df784430}
+    .elabel{font-size:11px;font-weight:600;fill:#6c7c6f;paint-order:stroke;stroke:#f9faf6;stroke-width:4;stroke-linejoin:round;text-anchor:middle;dominant-baseline:middle}.elabel.hot{fill:#b35a28}.elabel.path{fill:var(--purple)}.elabel.good{fill:var(--green)}.elabel.small{font-size:9.5px}
+    .node circle,.node rect{stroke-width:2.5;fill:#fff;stroke:#9aa79c}.node.origin circle{stroke:var(--orange)}.node.shelter rect{stroke:var(--green)}.node.queued circle,.node.queued rect{fill:#ffe3cf;stroke:var(--orange)}.node.done circle,.node.done rect{fill:#d6eadb;stroke:var(--green)}.node.current circle,.node.current rect{stroke:var(--green-dark);stroke-width:5}.node.dim circle,.node.dim rect{fill:#f4f5f2;stroke:#d3d9d0;stroke-dasharray:4 3}.node.special circle{fill:var(--green-dark);stroke:var(--green-dark)}.node.special text.nid{fill:#fff}
+    .nid{font-size:12px;font-weight:700;fill:#2f463d;text-anchor:middle;dominant-baseline:central;pointer-events:none}.nsub{font-size:11px;font-weight:650;fill:#566b5e;text-anchor:middle;paint-order:stroke;stroke:#f9faf6;stroke-width:4;stroke-linejoin:round}.nsub.hot{fill:#b35a28}.nsub.good{fill:var(--green)}.nidx{font-size:10.5px;fill:#9aa79c;text-anchor:middle}
+    .axis{stroke:#cfd6cc;stroke-width:1}.axis-label{font-size:11.5px;fill:#8b958a;text-anchor:middle}.bar{fill:#bcd6c3}.bar.full{fill:var(--green)}.bar.part{fill:#f2b48f}.bar.hot{stroke:var(--green-dark);stroke-width:2.5}.bar.ghost{fill:#e4e8e1}.marker-line{stroke-width:2;stroke-dasharray:5 4}.marker-text{font-size:11px;font-weight:700;text-anchor:middle}
+    .note-box{font-size:12px;fill:#8b958a}
+    footer{margin-top:22px;font-size:11px;color:#8d978c;line-height:1.7}
+    @media(max-width:1100px){.layout{grid-template-columns:minmax(0,1fr)}.code-card{position:static}.code{max-height:520px}.toolbar{position:static}}
+    @media(max-width:700px){main{padding:20px 16px 30px}.topbar{padding:0 16px}.topbar .button{padding:7px 10px;font-size:12px;min-height:34px}.card-head{flex-wrap:wrap}.check{max-width:none;text-align:left}.scene-controls{width:100%}.scene-controls label{flex-wrap:wrap}.scene-controls select{max-width:100%}h1{font-size:25px}.tab{min-width:0;flex:1 1 45%}.explain{grid-template-columns:1fr}.explain>div+div{border-left:0;border-top:1px solid var(--line)}.stepper input[type=range]{width:100%;order:9}.code{font-size:11.5px}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 18V9a4 4 0 0 1 8 0v6a3 3 0 0 0 6 0V6M16 9l3-3 3 3"/></svg></span><span>SafeRoute<span class="brand-sub">C++ WALKTHROUGH</span></span></a>
+    <a class="button" href="index.html">← Back to the simulator</a>
+  </header>
+  <main>
+    <p class="eyebrow">CSE 4403 · SOURCE CODE DEMONSTRATION</p>
+    <h1>Read the C++ line by line.</h1>
+    <p class="subtitle"><strong>Hover</strong> over a line to preview what it does to the data. <strong>Click</strong> a line to jump there, and click it again to go to its next run. Use <kbd>←</kbd> <kbd>→</kbd> to step and <kbd>Space</kbd> to play. The code is the real <code>cpp/algorithms.cpp</code>, and the line numbers match the file.</p>
+    <nav class="tabs" id="tabs" aria-label="Algorithms"></nav>
+    <section class="toolbar card" aria-label="Controls">
+      <div class="scene-controls" id="scene-controls"></div>
+      <div class="stepper">
+        <button id="first" title="First step (Home)" aria-label="First step">⏮</button>
+        <button id="prev" title="Previous step (←)" aria-label="Previous step">◀</button>
+        <button id="play" title="Play / pause (Space)">▶ Play</button>
+        <button id="next" title="Next step (→)" aria-label="Next step">▶</button>
+        <button id="last" title="Last step (End)" aria-label="Last step">⏭</button>
+        <input type="range" id="slider" min="0" value="0" aria-label="Step">
+        <span class="counter" id="counter"></span>
+        <select id="speed" aria-label="Playback speed"><option value="1400">0.5×</option><option value="700" selected>1×</option><option value="350">2×</option><option value="150">4×</option></select>
+      </div>
+    </section>
+    <div class="layout">
+      <section class="card code-card">
+        <div class="card-head"><div><span class="mini" id="code-file">CPP/ALGORITHMS.CPP</span><h2 id="code-title"></h2></div><span class="hint" id="code-hint"></span></div>
+        <div class="code" id="code"></div>
+      </section>
+      <section class="card visual-card">
+        <div class="card-head"><div><span class="mini">WHAT THE CODE IS DOING</span><h2 id="visual-title"></h2><p id="visual-sub"></p></div><span class="check" id="check">Checking against the C++ engine…</span></div>
+        <div class="explain">
+          <div><span class="kicker" id="line-kicker">This line</span><p id="line-text"></p></div>
+          <div><span class="kicker" id="now-kicker">Right now</span><p id="now-text"></p></div>
+        </div>
+        <svg id="viz" viewBox="0 0 900 500" role="img" aria-label="Algorithm state diagram"></svg>
+        <div class="legend" id="legend"></div>
+        <div class="panels" id="panels"></div>
+      </section>
+    </div>
+    <footer>The diagrams replay each C++ statement on the chosen example. When the C++ engine (WebAssembly build) is available, the final answer of every replay is checked against it; the badge at the top right shows the result.</footer>
+  </main>
+
+<script id="cpp-source" type="text/plain">
+// SafeRoute — graph algorithms for earthquake evacuation planning.
+#include "algorithms.hpp"
+
+#include <algorithm>
+#include <functional>
+#include <map>
+#include <queue>
+#include <stdexcept>
+#include <utility>
+
+namespace saferoute {
+
+void checkDeadline(int horizon) {
+    if (horizon < 0 || horizon > Limits::horizon)
+        throw std::runtime_error("Deadline must be an integer from 0 to 60 minutes.");
+}
+
+std::vector<std::vector<Arc>> buildAdjacency(const Scenario& s) {
+    std::vector<std::vector<Arc>> graph(s.nodes.size());
+    for (int r = 0; r < static_cast<int>(s.roads.size()); r++) {
+        const Road& road = s.roads[r];
+        if (road.blocked) continue;
+        graph[road.from].push_back({road.to, r, road.time});
+        if (road.bidirectional) graph[road.to].push_back({road.from, r, road.time});
+    }
+    return graph;
+}
+
+static void checkStart(const Scenario& s, int start) {
+    if (start < 0 || start >= static_cast<int>(s.nodes.size()))
+        throw std::runtime_error("Select an existing start location.");
+}
+
+// =====================================================================
+// 1. Breadth-first search — O(V + E)
+//    Explores locations in layers of "number of roads away". Used to show
+//    which locations an origin can reach at all through open roads.
+// =====================================================================
+BfsResult bfs(const Scenario& s, int start) {
+    checkStart(s, start);
+    const auto graph = buildAdjacency(s);
+    const int n = static_cast<int>(s.nodes.size());
+
+    BfsResult result;
+    result.parent.assign(n, -1);
+    std::vector<bool> seen(n, false);
+
+    std::queue<int> q;
+    q.push(start);
+    seen[start] = true;
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        result.order.push_back(u);
+        for (const Arc& arc : graph[u]) {
+            if (seen[arc.to]) continue;
+            seen[arc.to] = true;
+            result.parent[arc.to] = u;
+            q.push(arc.to);
+        }
+    }
+    return result;
+}
+
+// =====================================================================
+// 2. Dijkstra's algorithm with a binary heap — O((V + E) log V)
+//    Road travel times are positive, so the location with the smallest
+//    tentative distance popped from the heap is final.
+// =====================================================================
+ShortestPaths dijkstra(const Scenario& s, int start) {
+    checkStart(s, start);
+    const auto graph = buildAdjacency(s);
+    const int n = static_cast<int>(s.nodes.size());
+
+    ShortestPaths result;
+    result.distance.assign(n, UNREACHABLE);
+    std::vector<int> prevNode(n, -1), prevRoad(n, -1);
+
+    // Min-heap of (distance, location).
+    using Item = std::pair<int, int>;
+    std::priority_queue<Item, std::vector<Item>, std::greater<Item>> heap;
+    result.distance[start] = 0;
+    heap.push({0, start});
+
+    while (!heap.empty()) {
+        auto [d, u] = heap.top();
+        heap.pop();
+        if (d != result.distance[u]) continue;   // stale entry: u was already finalised
+        result.order.push_back(u);
+        for (const Arc& arc : graph[u]) {
+            int next = d + arc.time;
+            if (next < result.distance[arc.to]) {   // relax the edge
+                result.distance[arc.to] = next;
+                prevNode[arc.to] = u;
+                prevRoad[arc.to] = arc.road;
+                heap.push({next, arc.to});
+            }
+        }
+    }
+
+    // Rebuild the route to every shelter by walking the predecessor links backwards.
+    for (int v = 0; v < n; v++) {
+        if (s.nodes[v].type != LocationType::Shelter || s.nodes[v].capacity <= 0) continue;
+        ShelterRoute route{v, result.distance[v], {}, {}};
+        if (route.time != UNREACHABLE) {
+            for (int u = v; u != start; u = prevNode[u]) {
+                route.nodes.push_back(u);
+                route.roads.push_back(prevRoad[u]);
+            }
+            route.nodes.push_back(start);
+            std::reverse(route.nodes.begin(), route.nodes.end());
+            std::reverse(route.roads.begin(), route.roads.end());
+        }
+        result.shelters.push_back(route);
+    }
+    std::stable_sort(result.shelters.begin(), result.shelters.end(),
+                     [](const ShelterRoute& a, const ShelterRoute& b) { return a.time < b.time; });
+    return result;
+}
+
+// =====================================================================
+// 3. Maximum flow — Edmonds–Karp, O(V · E²)
+//    Ford–Fulkerson where every augmenting path is a shortest path (fewest
+//    edges), found by BFS in the residual graph.
+// =====================================================================
+FlowNetwork::FlowNetwork(int vertices) : adj_(vertices) {}
+
+int FlowNetwork::addEdge(int from, int to, int capacity) {
+    int id = static_cast<int>(edges_.size());
+    edges_.push_back({from, to, capacity, capacity});   // forward edge: id
+    edges_.push_back({to, from, 0, 0});                 // reverse edge: id ^ 1
+    adj_[from].push_back(id);
+    adj_[to].push_back(id ^ 1);
+    return id;
+}
+
+FlowNetwork::MaxFlowResult FlowNetwork::maxFlow(int source, int sink) {
+    if (source == sink) throw std::runtime_error("Flow source and sink must differ.");
+    const int n = vertexCount();
+    MaxFlowResult result{0, 0};
+    std::vector<int> parentEdge(n);   // edge used to reach each vertex in this BFS
+
+    while (true) {
+        // BFS in the residual graph for the shortest augmenting path.
+        std::fill(parentEdge.begin(), parentEdge.end(), -1);
+        std::vector<bool> visited(n, false);
+        visited[source] = true;
+        std::queue<int> q;
+        q.push(source);
+        while (!q.empty() && !visited[sink]) {
+            int u = q.front();
+            q.pop();
+            for (int id : adj_[u]) {
+                const Edge& e = edges_[id];
+                if (e.residual <= 0 || visited[e.to]) continue;
+                visited[e.to] = true;
+                parentEdge[e.to] = id;
+                q.push(e.to);
+                if (e.to == sink) break;
+            }
+        }
+        if (!visited[sink]) break;   // no augmenting path: the flow is maximum
+
+        // Bottleneck = smallest residual capacity along the path.
+        int amount = INT_MAX;
+        for (int v = sink; v != source; v = edges_[parentEdge[v]].from)
+            amount = std::min(amount, edges_[parentEdge[v]].residual);
+
+        // Push the flow; the paired reverse edge lets a later path undo it.
+        for (int v = sink; v != source; v = edges_[parentEdge[v]].from) {
+            edges_[parentEdge[v]].residual -= amount;
+            edges_[parentEdge[v] ^ 1].residual += amount;
+        }
+        result.value += amount;
+        result.augmentations++;
+    }
+    return result;
+}
+
+// ---------------------------------------------------------------------
+// Time-expanded network for a deadline H.
+//
+//   vertex (v, t)  = location v at minute t, for t = 0..H
+//   source -> (origin, 0)            capacity = people living there
+//   (v, t) -> (v, t+1)               waiting, unlimited
+//   (a, t) -> (b, t + travel time)   road entry, capacity per minute
+//   (shelter, t) -> gate(shelter)    arriving at minute t
+//   gate(shelter) -> sink            capacity = TOTAL shelter spaces
+//
+// One gate per shelter makes its capacity a total over all minutes,
+// not a per-minute limit. A maximum flow = most people safe by minute H.
+// ---------------------------------------------------------------------
+TimeExpandedNetwork buildTimeExpandedNetwork(const Scenario& s, int horizon) {
+    const int count = static_cast<int>(s.nodes.size());
+    std::vector<int> shelters;
+    for (int v = 0; v < count; v++)
+        if (s.nodes[v].type == LocationType::Shelter) shelters.push_back(v);
+
+    const int gateOffset = count * (horizon + 1);
+    TimeExpandedNetwork net;
+    net.source = gateOffset + static_cast<int>(shelters.size());
+    net.sink = net.source + 1;
+    net.network = FlowNetwork(net.sink + 1);
+    const int total = s.totalPopulation();
+
+    auto at = [count](int v, int t) { return t * count + v; };
+    auto add = [&net](int from, int to, int capacity, EdgeInfo info) {
+        net.network.addEdge(from, to, capacity);
+        net.info.push_back(info);
+    };
+
+    for (int v = 0; v < count; v++) {
+        const Location& loc = s.nodes[v];
+        if (loc.type == LocationType::Origin && loc.population)
+            add(net.source, at(v, 0), loc.population, {EdgeKind::Source, v});
+        for (int t = 0; t < horizon; t++) {
+            EdgeInfo wait{EdgeKind::Wait, v};
+            wait.start = t;
+            wait.end = t + 1;
+            add(at(v, t), at(v, t + 1), total, wait);
+        }
+    }
+
+    for (int r = 0; r < static_cast<int>(s.roads.size()); r++) {
+        const Road& road = s.roads[r];
+        if (road.blocked) continue;
+        for (int t = 0; t + road.time <= horizon; t++) {
+            EdgeInfo travel{EdgeKind::Travel};
+            travel.road = r;
+            travel.start = t;
+            travel.end = t + road.time;
+            travel.from = road.from;
+            travel.to = road.to;
+            add(at(road.from, t), at(road.to, t + road.time), road.capacity, travel);
+            if (road.bidirectional) {
+                travel.from = road.to;
+                travel.to = road.from;
+                add(at(road.to, t), at(road.from, t + road.time), road.capacity, travel);
+            }
+        }
+    }
+
+    for (int i = 0; i < static_cast<int>(shelters.size()); i++) {
+        const int v = shelters[i], gate = gateOffset + i;
+        for (int t = 0; t <= horizon; t++) {
+            EdgeInfo arrive{EdgeKind::Arrive, v};
+            arrive.start = t;
+            add(at(v, t), gate, total, arrive);
+        }
+        add(gate, net.sink, s.nodes[v].capacity, {EdgeKind::ShelterGate, v});
+    }
+    return net;
+}
+
+// Flow decomposition: split the maximum flow into groups of people that follow
+// one source-to-sink path each. Repeatedly find a path of edges still carrying
+// flow (by BFS), take its bottleneck as the group size, and subtract it.
+static std::vector<GroupPath> decompose(const TimeExpandedNetwork& net) {
+    const FlowNetwork& g = net.network;
+    std::vector<int> remaining(g.edgeCount());
+    for (int k = 0; k < g.edgeCount(); k++) remaining[k] = g.flowOn(2 * k);
+
+    std::vector<GroupPath> paths;
+    while (true) {
+        std::vector<int> parentEdge(g.vertexCount(), -1);
+        std::vector<bool> visited(g.vertexCount(), false);
+        visited[net.source] = true;
+        std::queue<int> q;
+        q.push(net.source);
+        while (!q.empty() && !visited[net.sink]) {
+            int u = q.front();
+            q.pop();
+            for (int id : g.outgoing(u)) {
+                if (id % 2 == 1 || remaining[id / 2] <= 0) continue;   // forward edges with flow only
+                int v = g.edge(id).to;
+                if (visited[v]) continue;
+                visited[v] = true;
+                parentEdge[v] = id;
+                q.push(v);
+            }
+        }
+        if (!visited[net.sink]) break;
+
+        std::vector<int> chain;   // edge ids from source to sink
+        int amount = INT_MAX;
+        for (int v = net.sink; v != net.source; v = g.edge(parentEdge[v]).from) {
+            chain.push_back(parentEdge[v]);
+            amount = std::min(amount, remaining[parentEdge[v] / 2]);
+        }
+        std::reverse(chain.begin(), chain.end());
+
+        GroupPath path{amount, -1, -1, 0, {}};
+        for (int id : chain) {
+            remaining[id / 2] -= amount;
+            const EdgeInfo& info = net.info[id / 2];
+            if (info.kind == EdgeKind::Source) path.origin = info.location;
+            if (info.kind == EdgeKind::Arrive) { path.shelter = info.location; path.arrival = info.start; }
+            if (info.kind == EdgeKind::Wait || info.kind == EdgeKind::Travel) path.steps.push_back(info);
+        }
+        paths.push_back(path);
+    }
+    return paths;
+}
+
+DeadlinePlan solveDeadline(const Scenario& s, int horizon) {
+    checkDeadline(horizon);
+    TimeExpandedNetwork net = buildTimeExpandedNetwork(s, horizon);
+    FlowNetwork::MaxFlowResult flow = net.network.maxFlow(net.source, net.sink);
+
+    DeadlinePlan plan;
+    plan.total = s.totalPopulation();
+    plan.evacuated = flow.value;
+    plan.remaining = plan.total - flow.value;
+    plan.horizon = horizon;
+    plan.arrivals.assign(horizon + 1, 0);
+    plan.shelters.resize(s.nodes.size());
+    for (size_t v = 0; v < s.nodes.size(); v++) {
+        plan.shelters[v].capacity = s.nodes[v].capacity;
+        plan.shelters[v].arrivals.assign(horizon + 1, 0);
+    }
+    plan.roads.resize(s.roads.size());
+
+    // Read the schedule off the flow on each forward edge.
+    for (int k = 0; k < net.network.edgeCount(); k++) {
+        const int used = net.network.flowOn(2 * k);
+        const EdgeInfo& info = net.info[k];
+        if (!used) continue;
+        if (info.kind == EdgeKind::Arrive) {
+            plan.arrivals[info.start] += used;
+            plan.shelters[info.location].used += used;
+            plan.shelters[info.location].arrivals[info.start] += used;
+        } else if (info.kind == EdgeKind::Travel) {
+            RoadUse& road = plan.roads[info.road];
+            road.people += used;
+            road.peak = std::max(road.peak, used);
+            road.departures.push_back({info.from, info.to, info.start, used});
+        }
+    }
+    int sum = 0;
+    for (int a : plan.arrivals) plan.cumulative.push_back(sum += a);
+
+    plan.paths = decompose(net);
+    std::stable_sort(plan.paths.begin(), plan.paths.end(), [&s](const GroupPath& a, const GroupPath& b) {
+        if (a.arrival != b.arrival) return a.arrival < b.arrival;
+        return s.nodes[a.origin].id < s.nodes[b.origin].id;
+    });
+    plan.vertices = net.network.vertexCount();
+    plan.edges = net.network.edgeCount();
+    plan.augmentations = flow.augmentations;
+    return plan;
+}
+
+int maxEvacuatedBy(const Scenario& s, int horizon) {
+    checkDeadline(horizon);
+    TimeExpandedNetwork net = buildTimeExpandedNetwork(s, horizon);
+    return net.network.maxFlow(net.source, net.sink).value;
+}
+
+// Ignoring time entirely: origins -> roads (unlimited) -> shelters (total spaces).
+// If this flow is below the population, no deadline can ever evacuate everyone.
+int eventualCapacity(const Scenario& s) {
+    const int count = static_cast<int>(s.nodes.size());
+    const int source = count, sink = count + 1, total = s.totalPopulation();
+    FlowNetwork network(count + 2);
+    for (int v = 0; v < count; v++) {
+        if (s.nodes[v].type == LocationType::Origin) network.addEdge(source, v, s.nodes[v].population);
+        if (s.nodes[v].type == LocationType::Shelter) network.addEdge(v, sink, s.nodes[v].capacity);
+    }
+    for (const Road& road : s.roads) {
+        if (road.blocked) continue;
+        network.addEdge(road.from, road.to, total);
+        if (road.bidirectional) network.addEdge(road.to, road.from, total);
+    }
+    return network.maxFlow(source, sink).value;
+}
+
+// =====================================================================
+// 4. Earliest full evacuation — binary search over the deadline.
+//    maxEvacuatedBy(H) never decreases as H grows (anyone safe by H is
+//    still safe by H+1), so the smallest H with everyone safe can be found
+//    with O(log 60) max-flow computations instead of trying all 61.
+// =====================================================================
+Analysis analyze(const Scenario& s, int horizon) {
+    Analysis a;
+    a.plan = solveDeadline(s, horizon);
+
+    for (int v = 0; v < static_cast<int>(s.nodes.size()); v++) {
+        if (s.nodes[v].type != LocationType::Origin) continue;
+        OriginAnalysis o{v, bfs(s, v), dijkstra(s, v), false};
+        for (const ShelterRoute& route : o.routes.shelters)
+            if (route.time != UNREACHABLE) o.reachable = true;
+        if (!o.reachable) a.isolatedPopulation += s.nodes[v].population;
+        a.origins.push_back(o);
+    }
+
+    a.eventual = eventualCapacity(s);
+    const int total = a.plan.total;
+    if (total == 0) {
+        a.completion = {CompletionStatus::Complete, 0};
+    } else if (a.eventual < total) {
+        a.completion = {CompletionStatus::Impossible, 0};
+    } else {
+        std::map<int, int> cache{{horizon, a.plan.evacuated}};
+        auto value = [&](int h) {
+            if (!cache.count(h)) cache[h] = maxEvacuatedBy(s, h);
+            return cache[h];
+        };
+        const bool doneByDeadline = a.plan.evacuated == total;
+        int lo = doneByDeadline ? 0 : horizon + 1;
+        int hi = doneByDeadline ? horizon : Limits::horizon;
+        if (lo > hi || value(hi) < total) {
+            a.completion = {CompletionStatus::BeyondLimit, 0};
+        } else {
+            while (lo < hi) {
+                int mid = (lo + hi) / 2;
+                if (value(mid) == total) hi = mid;
+                else lo = mid + 1;
+            }
+            a.completion = {CompletionStatus::Complete, lo};
+        }
+    }
+    return a;
+}
+
+}  // namespace saferoute
+</script>
+<script src="src/saferoute_wasm.js"></script>
+<script src="src/engine.js"></script>
+<script src="src/scenarios.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const INF = Infinity;
+  const fmtD = (d) => (d === INF ? '∞' : String(d));
+  const clone = (v) => {
+    if (Array.isArray(v)) return v.map(clone);
+    if (v && typeof v === 'object') { const o = {}; for (const k in v) o[k] = clone(v[k]); return o; }
+    return v;
+  };
+  const SAMPLES = window.EVACUATION_SCENARIOS || [];
+  const ENGINE = window.Evacuation || null;
+
+  // ------------------------------------------------------------ the real C++ source
+  const SOURCE = $('cpp-source').textContent.replace(/\r/g, '').replace(/^\n/, '').split('\n');
+
+  // Returns the lines of one or more consecutive functions, with the comment block above them.
+  function extract(firstSig, lastSig = firstSig) {
+    const find = (sig) => {
+      const i = SOURCE.findIndex((l) => l.startsWith(sig));
+      if (i < 0) throw new Error('C++ function not found: ' + sig);
+      return i;
+    };
+    let start = find(firstSig);
+    while (start > 0 && SOURCE[start - 1].startsWith('//')) start--;
+    let end = find(lastSig);
+    while (end < SOURCE.length && SOURCE[end] !== '}') end++;
+    return SOURCE.slice(start, end + 1).map((text, k) => ({ text, no: start + k + 1 }));
+  }
+
+  // Finds a code line by its (trimmed) text. Exact matches win; otherwise the line must start with it.
+  function anchors(lines) {
+    const cache = new Map();
+    return function at(text, nth) {
+      const key = text + '#' + nth;
+      if (cache.has(key)) return cache.get(key);
+      const exact = [], starts = [];
+      lines.forEach((l, i) => { const t = l.text.trim(); if (t === text) exact.push(i); else if (t.startsWith(text)) starts.push(i); });
+      const list = exact.length ? exact : starts;
+      if (!list.length) throw new Error('Line not found in the C++ source: ' + text);
+      if (nth === undefined && list.length > 1) throw new Error('Ambiguous C++ line: ' + text);
+      if ((nth || 0) >= list.length) throw new Error('Line not found in the C++ source: ' + text + ' #' + nth);
+      cache.set(key, list[nth || 0]);
+      return list[nth || 0];
+    };
+  }
+
+  // ------------------------------------------------------------ syntax highlighting
+  const KEYWORDS = new Set(['const', 'auto', 'for', 'while', 'if', 'else', 'return', 'continue', 'break', 'static', 'using', 'true', 'false', 'throw', 'new', 'struct', 'class', 'static_cast', 'this', 'nullptr']);
+  const TYPES = new Set(['int', 'bool', 'void', 'double', 'size_t', 'std', 'vector', 'queue', 'priority_queue', 'pair', 'greater', 'map', 'string', 'runtime_error', 'BfsResult', 'Scenario', 'ShortestPaths', 'Arc', 'ShelterRoute', 'FlowNetwork', 'Edge', 'MaxFlowResult', 'TimeExpandedNetwork', 'EdgeInfo', 'EdgeKind', 'Location', 'LocationType', 'Road', 'Analysis', 'OriginAnalysis', 'CompletionStatus', 'Item', 'Limits', 'DeadlinePlan', 'INT_MAX', 'UNREACHABLE']);
+  function highlight(text) {
+    let out = '';
+    const re = /(\/\/.*$)|("(?:\\.|[^"\\])*")|(\b\d+\b)|([A-Za-z_]\w*)|([^A-Za-z_\d"/]+|\/)/g;
+    let m;
+    while ((m = re.exec(text))) {
+      if (m[1]) out += `<span class="tok-c">${esc(m[1])}</span>`;
+      else if (m[2]) out += `<span class="tok-s">${esc(m[2])}</span>`;
+      else if (m[3]) out += `<span class="tok-n">${m[3]}</span>`;
+      else if (m[4]) {
+        const w = m[4], after = text.slice(re.lastIndex).trimStart();
+        if (KEYWORDS.has(w)) out += `<span class="tok-k">${w}</span>`;
+        else if (TYPES.has(w)) out += `<span class="tok-t">${w}</span>`;
+        else if (after.startsWith('(')) out += `<span class="tok-f">${w}</span>`;
+        else out += esc(w);
+      } else out += esc(m[5]);
+    }
+    return out;
+  }
+
+  // ------------------------------------------------------------ scenario helpers
+  function prepare(raw) {
+    const nodes = raw.nodes.map((n) => ({ id: n.id, name: n.name || n.id, type: n.type, population: n.population || 0, capacity: n.capacity || 0, x: n.x, y: n.y }));
+    const index = new Map(nodes.map((n, i) => [n.id, i]));
+    const roads = raw.roads.map((r) => ({ id: r.id, from: index.get(r.from), to: index.get(r.to), time: r.time, capacity: r.capacity, blocked: !!r.blocked, bidirectional: r.bidirectional !== false }));
+    return { name: raw.name, nodes, roads, total: nodes.reduce((s, n) => s + n.population, 0) };
+  }
+  function toRaw(sc) {
+    return { name: sc.name, nodes: sc.nodes.map((n) => ({ ...n })),
+      roads: sc.roads.map((r) => ({ ...r, from: sc.nodes[r.from].id, to: sc.nodes[r.to].id })) };
+  }
+  function buildAdjacency(sc) {
+    const g = sc.nodes.map(() => []);
+    sc.roads.forEach((r, i) => {
+      if (r.blocked) return;
+      g[r.from].push({ to: r.to, road: i, time: r.time });
+      if (r.bidirectional) g[r.to].push({ to: r.from, road: i, time: r.time });
+    });
+    return g;
+  }
+  // Plain (untraced) copies of the C++ flow code, used for charts and overlays.
+  function maxFlow(nVert, list, s, t) {
+    const from = [], to = [], cap = [], res = [], adj = Array.from({ length: nVert }, () => []);
+    for (const [u, v, c] of list) { const id = to.length; from.push(u, v); to.push(v, u); cap.push(c, 0); res.push(c, 0); adj[u].push(id); adj[v].push(id ^ 1); }
+    let value = 0;
+    const parent = new Int32Array(nVert);
+    while (true) {
+      parent.fill(-1);
+      const vis = new Uint8Array(nVert); vis[s] = 1;
+      const q = [s];
+      for (let h = 0; h < q.length && !vis[t]; h++) {
+        for (const id of adj[q[h]]) {
+          if (res[id] <= 0 || vis[to[id]]) continue;
+          vis[to[id]] = 1; parent[to[id]] = id; q.push(to[id]);
+          if (to[id] === t) break;
+        }
+      }
+      if (!vis[t]) break;
+      let a = INF;
+      for (let v = t; v !== s; v = from[parent[v]]) a = Math.min(a, res[parent[v]]);
+      for (let v = t; v !== s; v = from[parent[v]]) { res[parent[v]] -= a; res[parent[v] ^ 1] += a; }
+      value += a;
+    }
+    return { value, flow: list.map((_, k) => cap[2 * k] - res[2 * k]) };
+  }
+  function timeExpanded(sc, H) {
+    const count = sc.nodes.length, shelters = [];
+    sc.nodes.forEach((n, v) => { if (n.type === 'shelter') shelters.push(v); });
+    const gateOffset = count * (H + 1), source = gateOffset + shelters.length, sink = source + 1, total = sc.total;
+    const at = (v, t) => t * count + v, list = [];
+    sc.nodes.forEach((n, v) => {
+      if (n.type === 'origin' && n.population) list.push([source, at(v, 0), n.population, { kind: 'source', v }]);
+      for (let t = 0; t < H; t++) list.push([at(v, t), at(v, t + 1), total, { kind: 'wait', v, t }]);
+    });
+    sc.roads.forEach((r, i) => {
+      if (r.blocked) return;
+      for (let t = 0; t + r.time <= H; t++) {
+        list.push([at(r.from, t), at(r.to, t + r.time), r.capacity, { kind: 'travel', road: i, t }]);
+        if (r.bidirectional) list.push([at(r.to, t), at(r.from, t + r.time), r.capacity, { kind: 'travel', road: i, t, reverse: true }]);
+      }
+    });
+    shelters.forEach((v, i) => {
+      for (let t = 0; t <= H; t++) list.push([at(v, t), gateOffset + i, total, { kind: 'arrive', v, t }]);
+      list.push([gateOffset + i, sink, sc.nodes[v].capacity, { kind: 'gate', v }]);
+    });
+    return { n: sink + 1, source, sink, list };
+  }
+  const maxEvacuatedBy = (sc, H) => { const g = timeExpanded(sc, H); return maxFlow(g.n, g.list, g.source, g.sink).value; };
+  function eventualCapacity(sc) {
+    const count = sc.nodes.length, list = [];
+    sc.nodes.forEach((n, v) => {
+      if (n.type === 'origin') list.push([count, v, n.population]);
+      if (n.type === 'shelter') list.push([v, count + 1, n.capacity]);
+    });
+    sc.roads.forEach((r) => { if (r.blocked) return; list.push([r.from, r.to, sc.total]); if (r.bidirectional) list.push([r.to, r.from, sc.total]); });
+    return maxFlow(count + 2, list, count, count + 1).value;
+  }
+
+  // ------------------------------------------------------------ SVG drawing
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs = {}, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) if (v !== null && v !== undefined && v !== false) e.setAttribute(k, v);
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  const MARKERS = { base: '#b3bdb1', active: '#df7844', tree: '#215f50', path: '#6b4fb3', residual: '#a39bc0', flow: '#215f50', blocked: '#c8514a', new: '#df7844' };
+  function curve(a, b, offset, ra, rb) {
+    const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1, px = -dy / len, py = dx / len;
+    const c = { x: (a.x + b.x) / 2 + px * offset * 2, y: (a.y + b.y) / 2 + py * offset * 2 };
+    const toward = (p, q, r) => { const l = Math.hypot(q.x - p.x, q.y - p.y) || 1; return { x: p.x + (q.x - p.x) / l * r, y: p.y + (q.y - p.y) / l * r }; };
+    const s = toward(a, c, ra), e = toward(b, c, rb);
+    const mid = { x: (s.x + 2 * c.x + e.x) / 4, y: (s.y + 2 * c.y + e.y) / 4 };
+    const f = (n) => n.toFixed(1);
+    return { d: offset ? `M${f(s.x)},${f(s.y)} Q${f(c.x)},${f(c.y)} ${f(e.x)},${f(e.y)}` : `M${f(s.x)},${f(s.y)} L${f(e.x)},${f(e.y)}`, mid };
+  }
+  // spec: {viewBox, nodes:[{id,x,y,r,shape,cls,label,sub,subCls,idx,title}], edges:[{from,to,cls,arrow,dashed,label,labelCls,offset,title,onClick}], extra(svg)}
+  function drawGraph(svg, spec) {
+    svg.setAttribute('viewBox', spec.viewBox || '0 0 900 500');
+    svg.textContent = '';
+    const defs = el('defs');
+    for (const [name, color] of Object.entries(MARKERS)) {
+      const m = el('marker', { id: 'm-' + name, viewBox: '0 0 10 10', refX: 8.5, refY: 5, markerWidth: 6.5, markerHeight: 6.5, orient: 'auto-start-reverse', markerUnits: 'userSpaceOnUse' });
+      m.setAttribute('markerWidth', 11); m.setAttribute('markerHeight', 11);
+      m.append(el('path', { d: 'M0,0 L10,5 L0,10 z', fill: color }));
+      defs.append(m);
+    }
+    svg.append(defs);
+    if (spec.before) spec.before(svg);
+    const pos = new Map(spec.nodes.map((n) => [n.id, n]));
+    const edgeLayer = el('g'), labelLayer = el('g'), nodeLayer = el('g');
+    for (const e of spec.edges) {
+      const a = pos.get(e.from), b = pos.get(e.to);
+      if (!a || !b) continue;
+      const g = curve(a, b, e.offset || 0, (a.r || 16) + 1, (b.r || 16) + (e.arrow ? 3 : 1));
+      if (e.onClick) {
+        const hit = el('path', { d: g.d, class: 'edge-hit' });
+        hit.addEventListener('click', e.onClick);
+        if (e.title) hit.append(el('title', {}, e.title));
+        edgeLayer.append(hit);
+      }
+      const p = el('path', { d: g.d, class: 'edge ' + (e.cls || ''), 'marker-end': e.arrow ? `url(#m-${e.arrow})` : null, 'stroke-dasharray': e.dashed ? '7 5' : null });
+      if (e.title && !e.onClick) p.append(el('title', {}, e.title));
+      if (e.onClick) p.style.pointerEvents = 'none';
+      edgeLayer.append(p);
+      if (e.label !== undefined && e.label !== null && e.label !== '') {
+        labelLayer.append(el('text', { x: g.mid.x.toFixed(1), y: g.mid.y.toFixed(1), class: 'elabel ' + (e.labelCls || '') }, e.label));
+      }
+    }
+    for (const n of spec.nodes) {
+      const g = el('g', { class: 'node ' + (n.cls || ''), transform: `translate(${n.x},${n.y})` });
+      const r = n.r || 16;
+      if (n.shape === 'square') g.append(el('rect', { x: -r, y: -r, width: 2 * r, height: 2 * r, rx: 6 }));
+      else g.append(el('circle', { r }));
+      g.append(el('text', { class: 'nid', y: 0.5, style: n.fontSize ? `font-size:${n.fontSize}px` : null }, n.label));
+      if (n.idx !== undefined) g.append(el('text', { class: 'nidx', y: -r - 6 }, n.idx));
+      if (n.sub) g.append(el('text', { class: 'nsub ' + (n.subCls || ''), y: r + 16 }, n.sub));
+      if (n.title) g.append(el('title', {}, n.title));
+      nodeLayer.append(g);
+    }
+    svg.append(edgeLayer, labelLayer, nodeLayer);
+    if (spec.after) spec.after(svg);
+  }
+
+  // ------------------------------------------------------------ small HTML builders
+  const chips = (items, empty = 'empty') => items.length ? `<div class="chips">${items.map((c) => `<span class="chip ${c.cls || ''}">${esc(c.text)}</span>`).join('')}</div>` : `<span class="empty">${esc(empty)}</span>`;
+  function arrayTable(headers, cells) {
+    return `<div class="scroll"><table class="arr"><tr>${headers.map((h) => `<th>${esc(h)}</th>`).join('')}</tr><tr>${cells.map((c) => `<td class="${c.cls || ''}">${esc(c.text)}</td>`).join('')}</tr></table></div>`;
+  }
+  const kv = (pairs) => `<dl class="kv">${pairs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
+  const panel = (title, body, wide) => `<section class="panel ${wide ? 'wide' : ''}"><h3>${esc(title)}</h3>${body}</section>`;
+  const legend = (items) => items.map(([kind, color, text]) => kind === 'line'
+    ? `<span><i class="sw line" style="border-color:${color}"></i>${esc(text)}</span>`
+    : `<span><i class="sw" style="border-color:${color};background:${kind === 'fill' ? color + '40' : '#fff'}"></i>${esc(text)}</span>`).join('');
+
+  // ------------------------------------------------------------ road-network scenes (BFS, Dijkstra)
+  function networkScene(base) {
+    const scene = Object.assign({ sample: 0 }, base);
+    scene.load = function () {
+      scene.sc = prepare(SAMPLES[scene.sample]);
+      scene.start = scene.sc.nodes.findIndex((n) => n.type === 'origin');
+      if (scene.start < 0) scene.start = 0;
+    };
+    scene.controls = () => `
+      <label>Network <select data-k="sample">${SAMPLES.map((s, i) => `<option value="${i}" ${i === scene.sample ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></label>
+      <label>Start <select data-k="start">${scene.sc.nodes.map((n, i) => `<option value="${i}" ${i === scene.start ? 'selected' : ''}>${esc(n.id)} · ${esc(n.name)}</option>`).join('')}</select></label>
+      <span class="hint">Click a road in the diagram to close or reopen it.</span>`;
+    scene.onControl = (k, v) => { if (k === 'sample') { scene.sample = +v; scene.load(); } else scene.start = +v; };
+    scene.load();
+    return scene;
+  }
+  // Draws the road network with per-scene colouring.
+  function drawNetwork(scene, svg, opt) {
+    const sc = scene.sc, nodes = sc.nodes;
+    const spec = {
+      viewBox: '0 0 900 500',
+      nodes: nodes.map((n, i) => ({ id: String(i), x: n.x, y: n.y, r: n.type === 'junction' ? 15 : 18, shape: n.type === 'shelter' ? 'square' : 'circle',
+        cls: n.type + ' ' + (opt.nodeCls ? opt.nodeCls(i) : ''), label: n.id, sub: opt.nodeSub ? opt.nodeSub(i) : '', subCls: opt.subCls ? opt.subCls(i) : '',
+        title: `${n.name} (${n.type}${n.population ? ', ' + n.population + ' people' : ''}${n.capacity ? ', ' + n.capacity + ' spaces' : ''})` })),
+      edges: []
+    };
+    sc.roads.forEach((r, i) => {
+      spec.edges.push({ from: String(r.from), to: String(r.to), cls: r.blocked ? 'blocked' : (opt.roadCls ? opt.roadCls(i) : ''), dashed: r.blocked,
+        arrow: r.bidirectional ? null : (r.blocked ? 'blocked' : 'base'), label: opt.roadLabel(r, i), labelCls: opt.roadLabelCls ? opt.roadLabelCls(i) : '',
+        title: `${r.id}: ${r.time} min, ${r.capacity} people/min${r.bidirectional ? ', two-way' : ', one-way'}${r.blocked ? ' — CLOSED (click to reopen)' : ' (click to close)'}`,
+        onClick: () => { r.blocked = !r.blocked; rebuild(true); } });
+    });
+    if (opt.active) spec.edges.push({ from: String(opt.active.from), to: String(opt.active.to), cls: opt.active.cls || 'active', arrow: opt.active.cls === 'skip' ? 'base' : 'active' });
+    drawGraph(svg, spec);
+  }
+  const adjacencyText = (sc, graph, u, arc) => graph[u].map((a) => ({ text: `${sc.nodes[a.to].id} (${sc.roads[a.road].id})`, cls: arc && arc.to === a.to && arc.road === a.road ? 'hot' : '' }));
+
+  // ------------------------------------------------------------ Scene 1: BFS
+  const bfsScene = networkScene({
+    key: 'bfs', tab: 'Breadth-first search', tabSub: 'reachability', title: 'bfs(): which locations can be reached?',
+    sub: 'Visits locations in layers using a FIFO queue. The green edges form the BFS tree.',
+    code: extract('BfsResult bfs('),
+    explanations: [
+      ['BfsResult bfs(', 'Function signature. Takes the validated scenario and the index of the start location; returns the visit order and each location\'s BFS parent.'],
+      ['checkStart(s, start);', 'Throws an error if <code>start</code> is not a valid location index.'],
+      ['const auto graph = buildAdjacency(s);', 'Builds adjacency lists from the <b>open</b> roads only. A two-way road is added to both endpoints\' lists, so closed roads simply never appear.'],
+      ['const int n =', '<code>n</code> = number of locations (vertices).'],
+      ['BfsResult result;', 'Creates the empty result: <code>order</code> (visit order) and <code>parent</code> (BFS tree).'],
+      ['result.parent.assign(n, -1);', 'Every location starts with parent −1, meaning "no parent yet".'],
+      ['std::vector<bool> seen(n, false);', '<code>seen[v]</code> becomes true the first time v is discovered, so no location is queued twice. This is what makes BFS O(V + E).'],
+      ['std::queue<int> q;', 'FIFO queue: locations are processed in the order they were discovered, so nearer layers (fewer roads away) come first.'],
+      ['q.push(start);', 'The start location is the first item in the queue.'],
+      ['seen[start] = true;', 'Mark the start as discovered.'],
+      ['while (!q.empty()) {', 'Keep going while there are discovered locations that have not been processed yet.'],
+      ['int u = q.front();', 'Take the location at the front of the queue (the oldest discovered one).'],
+      ['q.pop();', 'Remove it from the queue.'],
+      ['result.order.push_back(u);', 'Record u in the visit order.'],
+      ['for (const Arc& arc : graph[u]) {', 'Look at every open road leaving u, in adjacency-list order.'],
+      ['if (seen[arc.to]) continue;', 'Neighbour already discovered → skip it (this edge is not part of the BFS tree).'],
+      ['seen[arc.to] = true;', 'New location discovered.'],
+      ['result.parent[arc.to] = u;', 'Remember that we reached it from u. These parent links form the BFS tree (green edges).'],
+      ['q.push(arc.to);', 'Queue it; it will be processed after everything already in the queue.'],
+      ['return result;', 'Every location reachable from the start has been visited exactly once. Unreached locations stay unseen: people there are cut off from the start.']
+    ],
+    trace(at) {
+      const sc = this.sc, n = sc.nodes.length, start = this.start, steps = [];
+      const st = { queue: [], seen: null, parent: null, tree: [], order: [], u: -1, arc: null, arcSkip: false, graphBuilt: false, n: null };
+      const emit = (a, note, nth) => steps.push({ line: at(a, nth), note, s: clone(st) });
+      const id = (v) => sc.nodes[v].id;
+      emit('checkStart(s, start);', `start = ${start} (${id(start)}) is a valid location.`);
+      const graph = buildAdjacency(sc); st.graphBuilt = true;
+      emit('const auto graph = buildAdjacency(s);', `Adjacency lists built from ${sc.roads.filter((r) => !r.blocked).length} open roads.`);
+      st.n = n; emit('const int n =', `n = ${n}`);
+      emit('BfsResult result;', 'Empty order and parent arrays.');
+      st.parent = Array(n).fill(-1); emit('result.parent.assign(n, -1);', 'parent[] = −1 for all locations.');
+      st.seen = Array(n).fill(false); emit('std::vector<bool> seen(n, false);', 'Nothing has been discovered yet.');
+      emit('std::queue<int> q;', 'The queue is empty.');
+      st.queue.push(start); emit('q.push(start);', `Push ${id(start)}. Queue: [${id(start)}]`);
+      st.seen[start] = true; emit('seen[start] = true;', `seen[${id(start)}] = true`);
+      while (true) {
+        if (!st.queue.length) { st.u = -1; emit('while (!q.empty()) {', 'The queue is empty → BFS is finished.'); break; }
+        emit('while (!q.empty()) {', `The queue has ${st.queue.length} location${st.queue.length > 1 ? 's' : ''} → continue.`);
+        const u = st.queue[0]; st.u = u; emit('int u = q.front();', `u = ${id(u)} (front of the queue).`);
+        st.queue.shift(); emit('q.pop();', `Removed ${id(u)} from the queue.`);
+        st.order.push(u); emit('result.order.push_back(u);', `${id(u)} is visit #${st.order.length}.`);
+        for (const arc of graph[u]) {
+          st.arc = { from: u, to: arc.to, road: arc.road }; st.arcSkip = false;
+          emit('for (const Arc& arc : graph[u]) {', `Next road from ${id(u)}: ${sc.roads[arc.road].id} → ${id(arc.to)}.`);
+          if (st.seen[arc.to]) { st.arcSkip = true; emit('if (seen[arc.to]) continue;', `${id(arc.to)} was already seen → skip.`); continue; }
+          emit('if (seen[arc.to]) continue;', `${id(arc.to)} has not been seen yet.`);
+          st.seen[arc.to] = true; emit('seen[arc.to] = true;', `seen[${id(arc.to)}] = true`);
+          st.parent[arc.to] = u; st.tree.push(arc.road); emit('result.parent[arc.to] = u;', `parent[${id(arc.to)}] = ${id(u)}`);
+          st.queue.push(arc.to); emit('q.push(arc.to);', `Queue: [${st.queue.map(id).join(', ')}]`);
+        }
+        st.arc = null;
+      }
+      const unreached = sc.nodes.filter((_, v) => !st.seen[v]).map((x) => x.id);
+      emit('return result;', `Order: ${st.order.map(id).join(' → ')}.${unreached.length ? ' Not reachable: ' + unreached.join(', ') + '.' : ' Every location is reachable.'}`);
+      this.final = st.order.map(id);
+      return steps;
+    },
+    draw(step, svg) {
+      const sc = this.sc, s = step.s;
+      const inQueue = new Set(s.queue), tree = new Set(s.tree);
+      drawNetwork(this, svg, {
+        nodeCls: (v) => [v === s.u ? 'current' : '', s.order.includes(v) ? 'done' : inQueue.has(v) ? 'queued' : ''].join(' '),
+        nodeSub: (v) => s.order.includes(v) ? '#' + (s.order.indexOf(v) + 1) : (inQueue.has(v) ? 'queued' : ''),
+        subCls: (v) => s.order.includes(v) ? 'good' : 'hot',
+        roadCls: (i) => tree.has(i) ? 'tree' : '', roadLabel: (r) => r.id,
+        active: s.arc ? { from: s.arc.from, to: s.arc.to, cls: s.arcSkip ? 'skip' : 'active' } : null
+      });
+      const id = (v) => sc.nodes[v].id;
+      const graph = buildAdjacency(sc);
+      return {
+        legend: legend([['ring', '#9aa79c', 'not seen'], ['fill', '#df7844', 'in queue'], ['fill', '#215f50', 'visited'], ['ring', '#163f36', 'u (current)'], ['line', '#df7844', 'road being checked'], ['line', '#215f50', 'BFS tree (parent links)'], ['line', '#c8514a', 'closed road']]),
+        panels: [
+          panel('Queue q (front → back)', chips(s.queue.map((v, k) => ({ text: id(v), cls: k === 0 ? 'hot' : '' })), 'empty')),
+          panel('result.order', chips(s.order.map((v) => ({ text: id(v), cls: 'good' })), 'nothing visited yet')),
+          panel('seen[]', s.seen ? arrayTable(sc.nodes.map((x) => x.id), s.seen.map((b, v) => ({ text: b ? 'T' : 'F', cls: b ? (s.arc && s.arc.to === v ? 'hot' : 'good') : 'dim' }))) : '<span class="empty">not created yet</span>', true),
+          panel('result.parent[]', s.parent ? arrayTable(sc.nodes.map((x) => x.id), s.parent.map((p, v) => ({ text: p < 0 ? '−1' : id(p), cls: p < 0 ? 'dim' : (s.arc && s.arc.to === v && !s.arcSkip ? 'hot' : 'good') }))) : '<span class="empty">not created yet</span>', true),
+          panel(s.u >= 0 ? `graph[${id(s.u)}] (open roads from u)` : 'graph[u]', s.graphBuilt && s.u >= 0 ? chips(adjacencyText(sc, graph, s.u, s.arc), 'no open roads') : '<span class="empty">no current location</span>', true)
+        ]
+      };
+    },
+    check() {
+      if (!ENGINE) return null;
+      const r = ENGINE.bfs(toRaw(this.sc), this.sc.nodes[this.start].id);
+      return { ok: JSON.stringify(r.order) === JSON.stringify(this.final), text: `C++ bfs() order: ${r.order.join(' → ')}` };
+    }
+  });
+
+  // ------------------------------------------------------------ Scene 2: Dijkstra
+  const dijkstraScene = networkScene({
+    key: 'dijkstra', tab: "Dijkstra's algorithm", tabSub: 'fastest routes', title: 'dijkstra(): fastest route to each shelter',
+    sub: 'A binary min-heap always pops the closest unfinished location. Numbers under locations are the current best distances in minutes.',
+    code: extract('ShortestPaths dijkstra('),
+    explanations: [
+      ['ShortestPaths dijkstra(', 'Function signature. Returns the shortest travel time to every location, the order they were finalised, and the fastest route to each shelter.'],
+      ['checkStart(s, start);', 'Throws an error if <code>start</code> is not a valid location index.'],
+      ['const auto graph = buildAdjacency(s);', 'Adjacency lists of open roads. Edge weight = travel time in minutes.'],
+      ['const int n =', '<code>n</code> = number of locations.'],
+      ['ShortestPaths result;', 'Creates the empty result.'],
+      ['result.distance.assign(n, UNREACHABLE);', 'All distances start at ∞ (<code>UNREACHABLE</code> = INT_MAX).'],
+      ['std::vector<int> prevNode(n, -1), prevRoad(n, -1);', 'Predecessor location and road on the best known route, used later to rebuild the route.'],
+      ['using Item = std::pair<int, int>;', 'A heap item is the pair (distance, location). Pairs compare by distance first.'],
+      ['std::priority_queue<Item, std::vector<Item>, std::greater<Item>> heap;', '<code>std::greater</code> turns the default max-heap into a <b>min-heap</b>: <code>top()</code> is the smallest distance. Push and pop are O(log n).'],
+      ['result.distance[start] = 0;', 'The start is 0 minutes from itself.'],
+      ['heap.push({0, start});', 'Put the start into the heap.'],
+      ['while (!heap.empty()) {', 'Repeat until every reachable location has been finalised.'],
+      ['auto [d, u] = heap.top();', 'Read the closest entry (d, u). Because all travel times are positive, no later path can reach u in less than d.'],
+      ['heap.pop();', 'Remove it from the heap.'],
+      ['if (d != result.distance[u]) continue;', '<b>Lazy deletion.</b> When a distance improves we push a new entry instead of editing the heap. Old, larger entries are skipped here.'],
+      ['result.order.push_back(u);', 'u is now final: its distance can never improve.'],
+      ['for (const Arc& arc : graph[u]) {', 'Try every open road leaving u.'],
+      ['int next = d + arc.time;', 'Distance to the neighbour if we go through u.'],
+      ['if (next < result.distance[arc.to]) {', '<b>Relaxation:</b> is the route through u faster than the best one known so far?'],
+      ['result.distance[arc.to] = next;', 'Yes: record the shorter distance.'],
+      ['prevNode[arc.to] = u;', 'Remember that the best route arrives from u …'],
+      ['prevRoad[arc.to] = arc.road;', '… along this road.'],
+      ['heap.push({next, arc.to});', 'Push the improved entry. Any older entry for this location becomes stale.'],
+      ['for (int v = 0; v < n; v++) {', 'After the main loop: build the route to every shelter.'],
+      ['if (s.nodes[v].type != LocationType::Shelter', 'Only shelters with space get a route.'],
+      ['ShelterRoute route{v, result.distance[v], {}, {}};', 'Start a route record with the shelter and its shortest time.'],
+      ['if (route.time != UNREACHABLE) {', 'Unreachable shelters keep an empty route.'],
+      ['for (int u = v; u != start; u = prevNode[u]) {', 'Walk backwards along the predecessor links from the shelter to the start.'],
+      ['route.nodes.push_back(u);', 'Collect the location …'],
+      ['route.roads.push_back(prevRoad[u]);', '… and the road used to reach it.'],
+      ['route.nodes.push_back(start);', 'Finally add the start itself.'],
+      ['std::reverse(route.nodes.begin()', 'The walk collected locations shelter → start, so reverse them.'],
+      ['std::reverse(route.roads.begin()', 'Reverse the roads the same way.'],
+      ['result.shelters.push_back(route);', 'Save this shelter\'s route.'],
+      ['std::stable_sort(', 'Sort the routes so the fastest shelter comes first (unreachable = ∞ goes last).'],
+      ['[](const ShelterRoute& a', 'Comparison lambda: smaller travel time first.'],
+      ['return result;', 'Done. Total time O((V + E) log V).']
+    ],
+    trace(at) {
+      const sc = this.sc, n = sc.nodes.length, start = this.start, steps = [];
+      const st = { dist: null, prev: null, prevRoad: null, heap: [], order: [], u: -1, d: null, arc: null, next: null, relaxed: false, stale: false, routes: [], route: null, walk: -1, sorted: false };
+      const emit = (a, note, nth) => steps.push({ line: at(a, nth), note, s: clone(st) });
+      const id = (v) => sc.nodes[v].id;
+      const heapText = () => st.heap.slice().sort((x, y) => x[0] - y[0] || x[1] - y[1]).map(([d, v]) => `(${d}, ${id(v)})`).join(' ');
+      emit('checkStart(s, start);', `start = ${id(start)}`);
+      const graph = buildAdjacency(sc);
+      emit('const auto graph = buildAdjacency(s);', 'Adjacency lists built; weights are travel minutes.');
+      emit('const int n =', `n = ${n}`);
+      emit('ShortestPaths result;', 'Empty result.');
+      st.dist = Array(n).fill(INF); emit('result.distance.assign(n, UNREACHABLE);', 'Every distance = ∞');
+      st.prev = Array(n).fill(-1); st.prevRoad = Array(n).fill(-1); emit('std::vector<int> prevNode(n, -1), prevRoad(n, -1);', 'No predecessors yet.');
+      emit('using Item = std::pair<int, int>;', 'Item = (distance, location)');
+      emit('std::priority_queue<Item, std::vector<Item>, std::greater<Item>> heap;', 'Empty min-heap.');
+      st.dist[start] = 0; emit('result.distance[start] = 0;', `distance[${id(start)}] = 0`);
+      st.heap.push([0, start]); emit('heap.push({0, start});', `Heap: (0, ${id(start)})`);
+      while (true) {
+        st.arc = null; st.next = null;
+        if (!st.heap.length) { st.u = -1; emit('while (!heap.empty()) {', 'The heap is empty → every shortest distance is final.'); break; }
+        emit('while (!heap.empty()) {', `Heap: ${heapText()}`);
+        // std::priority_queue with std::greater pops the smallest (distance, location) pair.
+        let best = 0;
+        st.heap.forEach((x, k) => { const b = st.heap[best]; if (x[0] < b[0] || (x[0] === b[0] && x[1] < b[1])) best = k; });
+        const [d, u] = st.heap[best]; st.u = u; st.d = d; st.stale = false;
+        emit('auto [d, u] = heap.top();', `top() = (${d}, ${id(u)}): d = ${d}, u = ${id(u)}`);
+        st.heap.splice(best, 1); emit('heap.pop();', `Heap: ${heapText() || 'empty'}`);
+        if (d !== st.dist[u]) { st.stale = true; emit('if (d != result.distance[u]) continue;', `Stale entry: distance[${id(u)}] is already ${st.dist[u]}, which is less than ${d} → skip.`); continue; }
+        emit('if (d != result.distance[u]) continue;', `d = distance[${id(u)}] = ${d}, so this entry is current.`);
+        st.order.push(u); emit('result.order.push_back(u);', `${id(u)} is final at ${d} min (#${st.order.length}).`);
+        for (const arc of graph[u]) {
+          st.arc = { from: u, to: arc.to, road: arc.road }; st.next = null; st.relaxed = false;
+          emit('for (const Arc& arc : graph[u]) {', `Road ${sc.roads[arc.road].id}: ${id(u)} → ${id(arc.to)} (${arc.time} min)`);
+          const next = d + arc.time; st.next = next;
+          emit('int next = d + arc.time;', `next = ${d} + ${arc.time} = ${next}`);
+          if (next < st.dist[arc.to]) {
+            emit('if (next < result.distance[arc.to]) {', `${next} < ${fmtD(st.dist[arc.to])} → shorter route found.`);
+            st.relaxed = true;
+            st.dist[arc.to] = next; emit('result.distance[arc.to] = next;', `distance[${id(arc.to)}] = ${next}`);
+            st.prev[arc.to] = u; emit('prevNode[arc.to] = u;', `prevNode[${id(arc.to)}] = ${id(u)}`);
+            st.prevRoad[arc.to] = arc.road; emit('prevRoad[arc.to] = arc.road;', `prevRoad[${id(arc.to)}] = ${sc.roads[arc.road].id}`);
+            st.heap.push([next, arc.to]); emit('heap.push({next, arc.to});', `Heap: ${heapText()}`);
+          } else emit('if (next < result.distance[arc.to]) {', `${next} ≥ ${fmtD(st.dist[arc.to])} → no improvement.`);
+        }
+      }
+      st.u = -1; st.arc = null; st.next = null;
+      for (let v = 0; v < n; v++) {
+        st.walk = v; st.route = null;
+        emit('for (int v = 0; v < n; v++) {', `v = ${id(v)}`);
+        const node = sc.nodes[v];
+        if (node.type !== 'shelter' || node.capacity <= 0) { emit('if (s.nodes[v].type != LocationType::Shelter', `${id(v)} is not a shelter with space → skip.`); continue; }
+        emit('if (s.nodes[v].type != LocationType::Shelter', `${id(v)} is a shelter with ${node.capacity} spaces.`);
+        st.route = { v, time: st.dist[v], nodes: [], roads: [] };
+        emit('ShelterRoute route{v, result.distance[v], {}, {}};', `Route to ${id(v)}: time = ${fmtD(st.dist[v])}`);
+        if (st.dist[v] !== INF) {
+          emit('if (route.time != UNREACHABLE) {', `${id(v)} is reachable → rebuild the route.`);
+          for (let u = v; u !== start; u = st.prev[u]) {
+            st.walk = u; emit('for (int u = v; u != start; u = prevNode[u]) {', `u = ${id(u)}`);
+            st.route.nodes.push(u); emit('route.nodes.push_back(u);', `nodes: ${st.route.nodes.map(id).join(', ')}`);
+            st.route.roads.push(st.prev[u] >= 0 ? st.prevRoad[u] : -1); emit('route.roads.push_back(prevRoad[u]);', `roads: ${st.route.roads.map((r) => sc.roads[r].id).join(', ')}`);
+          }
+          st.walk = start; st.route.nodes.push(start); emit('route.nodes.push_back(start);', `nodes: ${st.route.nodes.map(id).join(', ')}`);
+          st.route.nodes.reverse(); emit('std::reverse(route.nodes.begin()', `Route: ${st.route.nodes.map(id).join(' → ')}`);
+          st.route.roads.reverse(); emit('std::reverse(route.roads.begin()', `Roads: ${st.route.roads.map((r) => sc.roads[r].id).join(' → ')}`);
+        } else emit('if (route.time != UNREACHABLE) {', `${id(v)} cannot be reached from ${id(start)}.`);
+        st.routes.push(st.route); emit('result.shelters.push_back(route);', `${st.routes.length} shelter route(s) stored.`);
+      }
+      st.walk = -1; st.route = null;
+      st.routes.sort((a, b) => a.time - b.time); st.sorted = true;
+      emit('std::stable_sort(', `Fastest first: ${st.routes.map((r) => `${id(r.v)} (${fmtD(r.time)} min)`).join(', ') || 'no shelters'}`);
+      emit('return result;', st.routes.length && st.routes[0].time !== INF ? `The nearest shelter is ${id(st.routes[0].v)}, ${st.routes[0].time} min away.` : 'No shelter is reachable from this start.');
+      this.final = { dist: st.dist, routes: st.routes.map((r) => ({ id: id(r.v), time: r.time === INF ? null : r.time, nodes: r.nodes.map(id) })) };
+      return steps;
+    },
+    draw(step, svg) {
+      const sc = this.sc, s = step.s, id = (v) => sc.nodes[v].id;
+      const heapSet = new Set(s.heap.map((x) => x[1]));
+      const tree = new Set(); if (s.prevRoad) s.prevRoad.forEach((r) => { if (r >= 0) tree.add(r); });
+      const routeRoads = new Set(s.route ? s.route.roads : []);
+      drawNetwork(this, svg, {
+        nodeCls: (v) => [v === s.u || v === s.walk ? 'current' : '', s.order.includes(v) ? 'done' : heapSet.has(v) ? 'queued' : ''].join(' '),
+        nodeSub: (v) => s.dist ? 'd=' + fmtD(s.dist[v]) : '',
+        subCls: (v) => s.arc && s.arc.to === v && s.relaxed ? 'hot' : (s.order.includes(v) ? 'good' : ''),
+        roadCls: (i) => routeRoads.has(i) ? 'path' : tree.has(i) ? 'tree' : '',
+        roadLabel: (r) => r.time + ' min',
+        active: s.arc ? { from: s.arc.from, to: s.arc.to, cls: 'active' } : null
+      });
+      const heapItems = s.heap.slice().sort((x, y) => x[0] - y[0] || x[1] - y[1]).map(([d, v], k) => ({ text: `(${d}, ${id(v)})`, cls: k === 0 ? 'hot' : '' }));
+      return {
+        legend: legend([['fill', '#df7844', 'in heap'], ['fill', '#215f50', 'final'], ['ring', '#163f36', 'u (current)'], ['line', '#df7844', 'road being relaxed'], ['line', '#215f50', 'shortest-path tree'], ['line', '#6b4fb3', 'route being rebuilt'], ['line', '#c8514a', 'closed road']]),
+        panels: [
+          panel('Min-heap (top first)', chips(heapItems, 'empty')),
+          panel('Relaxation', s.arc && s.next !== null ? kv([['d', s.d], ['arc.time', sc.roads[s.arc.road].time], ['next', s.next], [`distance[${id(s.arc.to)}]`, fmtD(s.dist[s.arc.to])]]) : `<span class="empty">${s.stale ? 'stale heap entry skipped' : 'no road being relaxed'}</span>`),
+          panel('result.distance[]', s.dist ? arrayTable(sc.nodes.map((x) => x.id), s.dist.map((d, v) => ({ text: fmtD(d), cls: s.arc && s.arc.to === v && s.relaxed ? 'hot' : (s.order.includes(v) ? 'good' : (d === INF ? 'dim' : '')) }))) : '<span class="empty">not created yet</span>', true),
+          panel('prevNode[]', s.prev ? arrayTable(sc.nodes.map((x) => x.id), s.prev.map((p, v) => ({ text: p < 0 ? '−1' : id(p), cls: p < 0 ? 'dim' : (s.route && s.route.nodes.includes(v) ? 'path' : '') }))) : '<span class="empty">not created yet</span>', true),
+          panel('result.order (finalised)', chips(s.order.map((v) => ({ text: id(v), cls: 'good' })), 'none yet')),
+          panel('result.shelters', chips(s.routes.map((r) => ({ text: `${id(r.v)}: ${r.time === INF ? 'unreachable' : r.nodes.map(id).join('→') + ' (' + r.time + ' min)'}`, cls: 'path' })), 'not built yet'))
+        ]
+      };
+    },
+    check() {
+      if (!ENGINE) return null;
+      const r = ENGINE.dijkstra(toRaw(this.sc), this.sc.nodes[this.start].id);
+      const dist = this.sc.nodes.map((n) => r.distances[n.id]);
+      const ok = JSON.stringify(dist) === JSON.stringify(this.final.dist.map((d) => (d === INF ? null : d))) &&
+        JSON.stringify(r.shelters.map((x) => ({ id: x.id, time: x.time, nodes: x.nodes }))) === JSON.stringify(this.final.routes);
+      const best = r.shelters[0];
+      return { ok, text: best && best.time !== null ? `C++ dijkstra(): ${best.nodes.join(' → ')} in ${best.time} min` : 'C++ dijkstra(): no shelter reachable' };
+    }
+  });
+
+  // ------------------------------------------------------------ Scene 3: Edmonds–Karp
+  const FLOW_GRAPHS = [
+    { name: 'Textbook network (max flow 23)', labels: ['s', 'v1', 'v2', 'v3', 'v4', 't'], pos: [[70, 250], [270, 105], [270, 395], [590, 105], [590, 395], [800, 250]],
+      edges: [[0, 1, 16], [0, 2, 13], [1, 2, 10], [2, 1, 4], [1, 3, 12], [3, 2, 9], [2, 4, 14], [4, 3, 7], [3, 5, 20], [4, 5, 4]] },
+    { name: 'Reverse-edge example (max flow 2)', labels: ['s', 'a', 'b', 'c', 'd', 't'], pos: [[70, 250], [300, 110], [300, 390], [580, 390], [580, 110], [800, 250]],
+      edges: [[0, 1, 1], [0, 2, 1], [1, 3, 1], [1, 4, 1], [2, 3, 1], [3, 5, 1], [4, 5, 1]] }
+  ];
+  const flowScene = {
+    key: 'flow', tab: 'Edmonds–Karp', tabSub: 'maximum flow', title: 'FlowNetwork: Edmonds–Karp maximum flow',
+    sub: 'Solid edges show flow/capacity. Dashed purple edges are residual reverse edges: they let a later path undo earlier flow.',
+    code: extract('FlowNetwork::FlowNetwork(', 'FlowNetwork::MaxFlowResult FlowNetwork::maxFlow('),
+    graph: 0,
+    controls() { return `<label>Network <select data-k="graph">${FLOW_GRAPHS.map((g, i) => `<option value="${i}" ${i === this.graph ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}</select></label><span class="hint">Tip: click <code>result.value += amount;</code> repeatedly to jump from one augmenting path to the next.</span>`; },
+    onControl(k, v) { this.graph = +v; },
+    explanations: [
+      ['FlowNetwork::FlowNetwork(', 'Constructor: creates one empty adjacency list per vertex.'],
+      ['int FlowNetwork::addEdge(', 'Adds a directed edge with a capacity. It is stored together with its residual reverse edge.'],
+      ['int id = static_cast<int>(edges_.size());', 'The new edge\'s id is its position in the <code>edges_</code> array. It is always even.'],
+      ['edges_.push_back({from, to, capacity, capacity});', 'Forward edge <code>id</code>: residual = capacity (nothing sent yet).'],
+      ['edges_.push_back({to, from, 0, 0});', 'Reverse edge <code>id + 1</code>: capacity 0. It gains residual capacity only when flow is pushed forward, which allows that flow to be cancelled later.'],
+      ['adj_[from].push_back(id);', 'The forward edge leaves <code>from</code>.'],
+      ['adj_[to].push_back(id ^ 1);', '<code>id ^ 1</code> flips the last bit: even ↔ odd. So an edge and its reverse are always partners <code>e</code> and <code>e ^ 1</code>, with no extra pointers.'],
+      ['return id;', 'Returns the forward edge id.'],
+      ['FlowNetwork::MaxFlowResult FlowNetwork::maxFlow(', '<b>Edmonds–Karp</b> = Ford–Fulkerson with BFS. Each augmenting path is a shortest path in the residual graph, which bounds the number of rounds to O(V·E). Total time O(V·E²).'],
+      ['if (source == sink) throw', 'Guard against a meaningless call.'],
+      ['const int n = vertexCount();', 'Number of vertices.'],
+      ['MaxFlowResult result{0, 0};', 'Total flow and number of augmenting paths, both starting at 0.'],
+      ['std::vector<int> parentEdge(n);', 'For each vertex, the edge used to reach it in this round\'s BFS.'],
+      ['while (true) {', 'One round = find one augmenting path and push flow along it.'],
+      ['std::fill(parentEdge.begin(), parentEdge.end(), -1);', 'Clear the BFS tree from the previous round.'],
+      ['std::vector<bool> visited(n, false);', 'Nothing is visited yet in this round.'],
+      ['visited[source] = true;', 'BFS starts at the source.'],
+      ['std::queue<int> q;', 'BFS queue.'],
+      ['q.push(source);', 'Queue the source.'],
+      ['while (!q.empty() && !visited[sink]) {', 'Standard BFS, stopping as soon as the sink has been reached.'],
+      ['int u = q.front();', 'Next vertex to expand.'],
+      ['q.pop();', 'Remove it from the queue.'],
+      ['for (int id : adj_[u]) {', 'Every edge leaving u, forward (even id) or reverse (odd id).'],
+      ['const Edge& e = edges_[id];', 'Reference to that edge.'],
+      ['if (e.residual <= 0 || visited[e.to]) continue;', 'Only edges with <b>remaining residual capacity</b> can be used, and each vertex is visited once.'],
+      ['visited[e.to] = true;', 'Reached a new vertex.'],
+      ['parentEdge[e.to] = id;', 'Remember which edge led here, so the path can be traced back.'],
+      ['q.push(e.to);', 'Queue it.'],
+      ['if (e.to == sink) break;', 'Reached the sink: this is a shortest augmenting path, so stop searching.'],
+      ['if (!visited[sink]) break;', 'No augmenting path exists, so the current flow is <b>maximum</b> (max-flow min-cut theorem).'],
+      ['int amount = INT_MAX;', 'Bottleneck, starting at "infinity".'],
+      ['for (int v = sink; v != source; v = edges_[parentEdge[v]].from)', 'Walk the path backwards from the sink using <code>parentEdge</code>.'],
+      ['amount = std::min(amount, edges_[parentEdge[v]].residual);', 'The bottleneck is the smallest residual capacity on the path.'],
+      ['for (int v = sink; v != source; v = edges_[parentEdge[v]].from) {', 'Walk the path again to push the flow.'],
+      ['edges_[parentEdge[v]].residual -= amount;', 'Use up capacity on the path edge.'],
+      ['edges_[parentEdge[v] ^ 1].residual += amount;', 'Give the same amount to its partner edge. This is what makes it possible to <b>undo</b> flow later.'],
+      ['result.value += amount;', 'The total flow grows by the bottleneck amount.'],
+      ['result.augmentations++;', 'Count this augmenting path.'],
+      ['return result;', 'Maximum flow value and number of augmenting paths.']
+    ],
+    trace(at) {
+      const G = FLOW_GRAPHS[this.graph], n = G.labels.length, S = 0, T = n - 1, steps = [];
+      const st = { edges: [], adj: Array.from({ length: n }, () => []), visited: Array(n).fill(false), parentEdge: Array(n).fill(-1), queue: [], u: -1, cur: -1, curOk: null, path: [], pathV: -1, amount: null, value: 0, aug: 0, phase: 'build', round: 0 };
+      const emit = (a, note, nth) => steps.push({ line: at(a, nth), note, s: clone(st) });
+      const L = (v) => G.labels[v];
+      const ed = (id) => `e${id} ${L(st.edges[id].from)}→${L(st.edges[id].to)}`;
+      emit('FlowNetwork::FlowNetwork(', `${n} vertices, no edges yet.`);
+      for (const [u, v, c] of G.edges) {
+        const id = st.edges.length;
+        emit('int id = static_cast<int>(edges_.size());', `addEdge(${L(u)}, ${L(v)}, ${c}): id = ${id}`);
+        st.edges.push({ from: u, to: v, cap: c, res: c }); st.cur = id; emit('edges_.push_back({from, to, capacity, capacity});', `e${id}: ${L(u)}→${L(v)}, capacity ${c}, residual ${c}`);
+        st.edges.push({ from: v, to: u, cap: 0, res: 0 }); st.cur = id + 1; emit('edges_.push_back({to, from, 0, 0});', `e${id + 1}: ${L(v)}→${L(u)} (reverse), capacity 0`);
+        st.adj[u].push(id); emit('adj_[from].push_back(id);', `adj[${L(u)}] = [${st.adj[u].map((x) => 'e' + x).join(', ')}]`);
+        st.adj[v].push(id ^ 1); emit('adj_[to].push_back(id ^ 1);', `adj[${L(v)}] = [${st.adj[v].map((x) => 'e' + x).join(', ')}]   (${id} ^ 1 = ${id ^ 1})`);
+        emit('return id;', `returns ${id}`);
+        st.cur = -1;
+      }
+      st.phase = 'flow';
+      emit('if (source == sink) throw', `source = ${L(S)}, sink = ${L(T)}`);
+      emit('const int n = vertexCount();', `n = ${n}`);
+      emit('MaxFlowResult result{0, 0};', 'value = 0, augmentations = 0');
+      emit('std::vector<int> parentEdge(n);', 'parentEdge[] created');
+      while (true) {
+        st.round++; st.path = []; st.amount = null; st.pathV = -1;
+        emit('while (true) {', `Round ${st.round}: look for an augmenting path from ${L(S)} to ${L(T)}.`);
+        st.parentEdge.fill(-1); emit('std::fill(parentEdge.begin(), parentEdge.end(), -1);', 'parentEdge[] = −1');
+        st.visited.fill(false); emit('std::vector<bool> visited(n, false);', 'visited[] = false');
+        st.visited[S] = true; emit('visited[source] = true;', `visited[${L(S)}] = true`);
+        st.queue = []; emit('std::queue<int> q;', 'Empty queue.');
+        st.queue.push(S); emit('q.push(source);', `Queue: [${L(S)}]`);
+        while (st.queue.length && !st.visited[T]) {
+          emit('while (!q.empty() && !visited[sink]) {', `Queue: [${st.queue.map(L).join(', ')}]`);
+          const u = st.queue[0]; st.u = u; emit('int u = q.front();', `u = ${L(u)}`);
+          st.queue.shift(); emit('q.pop();', `Expanding ${L(u)}.`);
+          for (const id of st.adj[u]) {
+            const e = st.edges[id]; st.cur = id; st.curOk = null;
+            emit('for (int id : adj_[u]) {', `${ed(id)}${id % 2 ? ' (reverse)' : ''}: residual ${e.res}`);
+            if (e.res <= 0 || st.visited[e.to]) { st.curOk = false; emit('if (e.residual <= 0 || visited[e.to]) continue;', e.res <= 0 ? `Residual is ${e.res} → cannot use this edge.` : `${L(e.to)} is already visited → skip.`); continue; }
+            st.curOk = true; emit('if (e.residual <= 0 || visited[e.to]) continue;', `Residual ${e.res} > 0 and ${L(e.to)} is unvisited → use it.`);
+            st.visited[e.to] = true; emit('visited[e.to] = true;', `visited[${L(e.to)}] = true`);
+            st.parentEdge[e.to] = id; emit('parentEdge[e.to] = id;', `parentEdge[${L(e.to)}] = e${id}`);
+            st.queue.push(e.to); emit('q.push(e.to);', `Queue: [${st.queue.map(L).join(', ')}]`);
+            if (e.to === T) { emit('if (e.to == sink) break;', `Reached the sink ${L(T)} → stop the BFS.`); break; }
+            emit('if (e.to == sink) break;', `${L(e.to)} is not the sink.`);
+          }
+          st.cur = -1; st.curOk = null;
+        }
+        st.u = -1;
+        if (!st.visited[T]) {
+          emit('while (!q.empty() && !visited[sink]) {', 'The queue is empty and the sink was not reached.');
+          emit('if (!visited[sink]) break;', `No augmenting path left → maximum flow = ${st.value}.`);
+          break;
+        }
+        emit('if (!visited[sink]) break;', 'The sink was reached → there is an augmenting path.');
+        const path = []; for (let v = T; v !== S; v = st.edges[st.parentEdge[v]].from) path.unshift(st.parentEdge[v]);
+        st.path = path;
+        st.amount = INF; emit('int amount = INT_MAX;', `Path: ${L(S)} → ${path.map((id) => L(st.edges[id].to)).join(' → ')}`);
+        for (let v = T; v !== S; v = st.edges[st.parentEdge[v]].from) {
+          const id = st.parentEdge[v]; st.pathV = v; st.cur = id;
+          emit('for (int v = sink; v != source; v = edges_[parentEdge[v]].from)', `v = ${L(v)}, edge ${ed(id)}`);
+          st.amount = Math.min(st.amount, st.edges[id].res); emit('amount = std::min(amount, edges_[parentEdge[v]].residual);', `residual ${st.edges[id].res} → amount = ${st.amount}`);
+        }
+        for (let v = T; v !== S; v = st.edges[st.parentEdge[v]].from) {
+          const id = st.parentEdge[v]; st.pathV = v; st.cur = id;
+          emit('for (int v = sink; v != source; v = edges_[parentEdge[v]].from) {', `v = ${L(v)}, edge ${ed(id)}`);
+          st.edges[id].res -= st.amount; emit('edges_[parentEdge[v]].residual -= amount;', `e${id}.residual = ${st.edges[id].res}`);
+          st.edges[id ^ 1].res += st.amount; emit('edges_[parentEdge[v] ^ 1].residual += amount;', `e${id ^ 1}.residual = ${st.edges[id ^ 1].res}${id % 2 ? '  (flow on the original edge was undone)' : ''}`);
+        }
+        st.cur = -1; st.pathV = -1;
+        st.value += st.amount; emit('result.value += amount;', `+${st.amount} → total flow = ${st.value}`);
+        st.aug++; emit('result.augmentations++;', `${st.aug} augmenting path${st.aug > 1 ? 's' : ''} so far`);
+      }
+      st.path = [];
+      emit('return result;', `Maximum flow = ${st.value}, found with ${st.aug} augmenting paths.`);
+      this.final = st.value;
+      return steps;
+    },
+    draw(step, svg) {
+      const G = FLOW_GRAPHS[this.graph], s = step.s, L = (v) => G.labels[v], n = G.labels.length;
+      const pathSet = new Set(s.path);
+      const forwardPairs = new Set(G.edges.map(([u, v]) => u + '-' + v));
+      const edges = [];
+      s.edges.forEach((e, id) => {
+        const isFwd = id % 2 === 0, hot = id === s.cur, inPath = pathSet.has(id);
+        if (isFwd) {
+          const flow = e.cap - e.res, anti = forwardPairs.has(e.to + '-' + e.from);
+          edges.push({ from: String(e.from), to: String(e.to), offset: anti ? 16 : 0, arrow: hot ? 'active' : inPath ? 'path' : flow ? 'flow' : 'base',
+            cls: hot ? (s.curOk === false ? 'skip' : 'active') : inPath ? 'path' : flow === e.cap && flow ? 'full' : flow ? 'flow' : '',
+            label: `${flow}/${e.cap}`, labelCls: hot ? 'hot' : inPath ? 'path' : flow ? 'good' : '', title: `e${id}: ${L(e.from)}→${L(e.to)} flow ${flow} of ${e.cap}` });
+        } else if (e.res > 0 || hot) {
+          edges.push({ from: String(e.from), to: String(e.to), offset: 36, dashed: true, arrow: hot ? 'active' : inPath ? 'path' : 'residual',
+            cls: hot ? (s.curOk === false ? 'skip' : 'active') : inPath ? 'path' : 'residual', label: `r=${e.res}`, labelCls: 'small ' + (hot ? 'hot' : inPath ? 'path' : ''), title: `e${id}: reverse of e${id ^ 1}, residual ${e.res}` });
+        }
+      });
+      const inQueue = new Set(s.queue);
+      drawGraph(svg, {
+        viewBox: '0 0 880 500',
+        nodes: G.labels.map((label, v) => ({ id: String(v), x: G.pos[v][0], y: G.pos[v][1], r: 21, label,
+          cls: [v === 0 || v === n - 1 ? 'special' : '', v === s.u ? 'current' : '', s.phase === 'flow' && s.visited[v] ? 'done' : '', inQueue.has(v) ? 'queued' : '', v === s.pathV ? 'current' : ''].join(' '),
+          sub: s.phase === 'flow' && s.parentEdge[v] >= 0 ? 'via e' + s.parentEdge[v] : '', subCls: 'good' })),
+        edges
+      });
+      const rows = s.edges.map((e, id) => `<tr><td class="${id === s.cur ? 'hot' : pathSet.has(id) ? 'path' : ''}">e${id}</td><td>${L(e.from)}→${L(e.to)}${id % 2 ? ' ↺' : ''}</td><td>${e.cap}</td><td class="${e.res ? '' : 'dim'}">${e.res}</td><td class="${id % 2 === 0 && e.cap - e.res ? 'good' : 'dim'}">${id % 2 === 0 ? e.cap - e.res : '—'}</td></tr>`).join('');
+      return {
+        legend: legend([['line', '#215f50', 'edge carrying flow (flow/capacity)'], ['line', '#a39bc0', 'residual reverse edge'], ['line', '#df7844', 'edge being checked'], ['line', '#6b4fb3', 'augmenting path'], ['fill', '#df7844', 'in queue'], ['fill', '#215f50', 'visited this round']]),
+        panels: [
+          panel('Totals', kv([['result.value', s.value], ['augmentations', s.aug], ['round', s.round || '—'], ['amount (bottleneck)', s.amount === null ? '—' : fmtD(s.amount)]])),
+          panel('BFS queue', chips(s.queue.map((v, k) => ({ text: L(v), cls: k === 0 ? 'hot' : '' })), 'empty')),
+          panel('Augmenting path', s.path.length ? chips([{ text: L(0), cls: 'path' }, ...s.path.map((id) => ({ text: `e${id} → ${L(s.edges[id].to)}`, cls: 'path' }))]) : '<span class="empty">none yet</span>', true),
+          panel('visited[] / parentEdge[]', `<div class="scroll"><table class="arr"><tr>${G.labels.map((l) => `<th>${l}</th>`).join('')}</tr><tr>${s.visited.map((b) => `<td class="${s.phase === 'flow' && b ? 'good' : 'dim'}">${s.phase === 'flow' && b ? 'T' : 'F'}</td>`).join('')}</tr><tr>${s.parentEdge.map((p) => `<td class="${p >= 0 ? 'path' : 'dim'}">${p >= 0 ? 'e' + p : '−1'}</td>`).join('')}</tr></table></div>`, true),
+          panel('edges_ (e and e ^ 1 are partners)', `<div class="scroll"><table class="arr rows"><tr><th>id</th><th>edge</th><th>cap</th><th>residual</th><th>flow</th></tr>${rows || '<tr><td colspan="5">no edges yet</td></tr>'}</table></div>`, true)
+        ]
+      };
+    },
+    check() {
+      const expected = [23, 2][this.graph];
+      return { ok: this.final === expected, text: `Expected ${expected}; the C++ test ${this.graph ? 'residualEdgesReroute' : 'knownMaxFlow'} checks this network` };
+    }
+  };
+
+  // ------------------------------------------------------------ Scene 4: time-expanded network
+  const expandedScene = {
+    key: 'expanded', tab: 'Time-expanded network', tabSub: 'deadline model', title: 'buildTimeExpandedNetwork(): one copy of every location per minute',
+    sub: 'Small example: 10 people at A, one-way road A→S (2 min, 3 people/min), shelter S with 10 spaces. A maximum flow in this graph = the most people safe by the deadline.',
+    code: extract('TimeExpandedNetwork buildTimeExpandedNetwork('),
+    H: 5, twoWay: false, overlay: false,
+    controls() {
+      return `<label>Deadline H <select data-k="H">${[2, 3, 4, 5, 6].map((h) => `<option ${h === this.H ? 'selected' : ''}>${h}</option>`).join('')}</select></label>
+        <label><input type="checkbox" data-k="twoWay" ${this.twoWay ? 'checked' : ''}> Make R1 two-way</label>
+        <label><input type="checkbox" data-k="overlay" ${this.overlay ? 'checked' : ''}> Show the max-flow solution</label>`;
+    },
+    onControl(k, v, input) { if (k === 'H') this.H = +v; else if (k === 'twoWay') this.twoWay = input.checked; else { this.overlay = input.checked; return 'redraw'; } },
+    scenario() { const sc = prepare(SAMPLES[3]); sc.roads[0].bidirectional = this.twoWay; return sc; },
+    explanations: [
+      ['TimeExpandedNetwork buildTimeExpandedNetwork(', 'Builds the flow network for deadline <code>horizon</code> (H). Vertex (v, t) means "at location v at minute t".'],
+      ['const int count =', 'Number of real locations.'],
+      ['std::vector<int> shelters;', 'Indices of shelter locations.'],
+      ['for (int v = 0; v < count; v++)', 'Scan every location …'],
+      ['if (s.nodes[v].type == LocationType::Shelter) shelters.push_back(v);', '… and keep the shelters.'],
+      ['const int gateOffset =', 'Vertices 0 … count·(H+1)−1 are the (location, minute) copies. The shelter gates are numbered after them.'],
+      ['TimeExpandedNetwork net;', 'The network plus a description of every edge.'],
+      ['net.source =', 'Source vertex: every person starts here.'],
+      ['net.sink =', 'Sink vertex: every person who reaches it is safe.'],
+      ['net.network = FlowNetwork(net.sink + 1);', 'Creates all the vertices (no edges yet).'],
+      ['const int total =', 'Total population. It serves as an "unlimited" capacity because no edge ever needs more than everyone.'],
+      ['auto at = [count](int v, int t) { return t * count + v; };', 'Vertex number of (v, t): minute-major numbering, so minute t occupies a block of <code>count</code> vertices.'],
+      ['auto add = [&net](int from, int to, int capacity, EdgeInfo info) {', 'Helper: adds an edge and records what it means, so the schedule can be read back after solving.'],
+      ['net.network.addEdge(from, to, capacity);', 'Adds the edge (and its reverse) to the flow network.'],
+      ['net.info.push_back(info);', 'Stores its meaning (wait, travel, arrive, …).'],
+      ['for (int v = 0; v < count; v++) {', 'For each location: a source edge (origins only) and waiting edges.'],
+      ['const Location& loc = s.nodes[v];', 'The current location.'],
+      ['if (loc.type == LocationType::Origin && loc.population)', 'Only origins with people get a source edge.'],
+      ['add(net.source, at(v, 0), loc.population, {EdgeKind::Source, v});', 'source → (origin, 0) with capacity = its population: each person enters exactly once, at minute 0.'],
+      ['for (int t = 0; t < horizon; t++) {', 'One waiting edge per minute.'],
+      ['EdgeInfo wait{EdgeKind::Wait, v};', 'Describe a waiting edge at v …'],
+      ['wait.start = t;', '… from minute t …'],
+      ['wait.end = t + 1;', '… to minute t + 1.'],
+      ['add(at(v, t), at(v, t + 1), total, wait);', '(v, t) → (v, t+1): people may <b>wait</b> at a location. The capacity is unlimited (total).'],
+      ['for (int r = 0; r < static_cast<int>(s.roads.size()); r++) {', 'For each road: travel edges.'],
+      ['const Road& road = s.roads[r];', 'The current road.'],
+      ['if (road.blocked) continue;', 'Closed roads get no edges at all.'],
+      ['for (int t = 0; t + road.time <= horizon; t++) {', 'Departures only at minutes where the traveller still arrives by H: nobody is counted while still on the road.'],
+      ['EdgeInfo travel{EdgeKind::Travel};', 'Describe a travel edge …'],
+      ['travel.road = r;', '… on this road …'],
+      ['travel.start = t;', '… departing at minute t …'],
+      ['travel.end = t + road.time;', '… arriving after the travel time.'],
+      ['travel.from = road.from;', 'Direction: from …'],
+      ['travel.to = road.to;', '… to.'],
+      ['add(at(road.from, t), at(road.to, t + road.time), road.capacity, travel);', '(from, t) → (to, t + time). Capacity = people who may <b>enter</b> the road that minute.'],
+      ['if (road.bidirectional) {', 'Two-way road: the other direction gets its own edges and capacity.'],
+      ['travel.from = road.to;', 'Swap the direction …'],
+      ['travel.to = road.from;', '… for the reverse trip.'],
+      ['add(at(road.to, t), at(road.from, t + road.time), road.capacity, travel);', '(to, t) → (from, t + time).'],
+      ['for (int i = 0; i < static_cast<int>(shelters.size()); i++) {', 'For each shelter: arrival edges and one gate.'],
+      ['const int v = shelters[i], gate = gateOffset + i;', 'Shelter location and its gate vertex.'],
+      ['for (int t = 0; t <= horizon; t++) {', 'People may arrive at any minute 0 … H.'],
+      ['EdgeInfo arrive{EdgeKind::Arrive, v};', 'Describe an arrival …'],
+      ['arrive.start = t;', '… at minute t.'],
+      ['add(at(v, t), gate, total, arrive);', '(shelter, t) → gate: entering the shelter at minute t.'],
+      ['add(gate, net.sink, s.nodes[v].capacity, {EdgeKind::ShelterGate, v});', 'gate → sink with capacity = <b>total</b> shelter spaces. Because all minutes share one gate, space is not refreshed each minute.'],
+      ['return net;', 'The finished network. <code>maxFlow(source, sink)</code> on it = the most people who can arrive by H.']
+    ],
+    trace(at) {
+      const sc = this.scenario(), H = this.H, count = sc.nodes.length, steps = [];
+      const st = { vars: {}, edges: [], vertices: false, latest: -1, loopV: -1, loopT: -1 };
+      const emit = (a, note, nth) => steps.push({ line: at(a, nth), note, s: clone(st) });
+      const id = (v) => sc.nodes[v].id;
+      const total = sc.total;
+      const vname = (x) => x === st.vars.source ? 'source' : x === st.vars.sink ? 'sink' : x >= st.vars.gateOffset ? 'gate(' + id(shelters[x - st.vars.gateOffset]) + ')' : `(${id(x % count)},${Math.floor(x / count)})`;
+      const add = (u, v, c, kind, anchor, extra) => { st.edges.push({ u, v, c, kind, ...extra }); st.latest = st.edges.length - 1; emit(anchor, `Edge ${st.edges.length}: ${vname(u)} → ${vname(v)}, capacity ${c}`); };
+      st.vars.count = count; st.vars.H = H; emit('const int count =', `count = ${count}, horizon H = ${H}`);
+      const shelters = []; emit('std::vector<int> shelters;', 'Empty list.');
+      for (let v = 0; v < count; v++) {
+        emit('for (int v = 0; v < count; v++)', `v = ${id(v)}`, 0);
+        if (sc.nodes[v].type === 'shelter') { shelters.push(v); emit('if (s.nodes[v].type == LocationType::Shelter) shelters.push_back(v);', `${id(v)} is a shelter → shelters = [${shelters.map(id).join(', ')}]`); }
+        else emit('if (s.nodes[v].type == LocationType::Shelter) shelters.push_back(v);', `${id(v)} is not a shelter.`);
+      }
+      st.vars.gateOffset = count * (H + 1); emit('const int gateOffset =', `gateOffset = ${count} × (${H} + 1) = ${st.vars.gateOffset}`);
+      emit('TimeExpandedNetwork net;', 'Empty network.');
+      st.vars.source = st.vars.gateOffset + shelters.length; emit('net.source =', `source = ${st.vars.gateOffset} + ${shelters.length} = ${st.vars.source}`);
+      st.vars.sink = st.vars.source + 1; emit('net.sink =', `sink = ${st.vars.sink}`);
+      st.vertices = true; emit('net.network = FlowNetwork(net.sink + 1);', `${st.vars.sink + 1} vertices created: ${count} locations × ${H + 1} minutes + ${shelters.length} gate + source + sink.`);
+      st.vars.total = total; emit('const int total =', `total = ${total} people`);
+      emit('auto at = [count](int v, int t) { return t * count + v; };', `at(v, t) = t × ${count} + v   e.g. at(${id(count - 1)}, 1) = ${count + count - 1}`);
+      emit('auto add = [&net](int from, int to, int capacity, EdgeInfo info) {', 'Helper defined.');
+      const at2 = (v, t) => t * count + v;
+      for (let v = 0; v < count; v++) {
+        st.loopV = v; st.loopT = -1; emit('for (int v = 0; v < count; v++) {', `v = ${id(v)}`);
+        const loc = sc.nodes[v]; emit('const Location& loc = s.nodes[v];', `${id(v)}: ${loc.type}${loc.population ? ', ' + loc.population + ' people' : ''}`);
+        if (loc.type === 'origin' && loc.population) {
+          emit('if (loc.type == LocationType::Origin && loc.population)', `${id(v)} is an origin with ${loc.population} people.`);
+          add(st.vars.source, at2(v, 0), loc.population, 'source', 'add(net.source, at(v, 0), loc.population, {EdgeKind::Source, v});');
+        } else emit('if (loc.type == LocationType::Origin && loc.population)', `${id(v)} has no people → no source edge.`);
+        for (let t = 0; t < H; t++) {
+          st.loopT = t; emit('for (int t = 0; t < horizon; t++) {', `t = ${t}`);
+          emit('EdgeInfo wait{EdgeKind::Wait, v};', `wait at ${id(v)}`);
+          emit('wait.start = t;', `start = ${t}`); emit('wait.end = t + 1;', `end = ${t + 1}`);
+          add(at2(v, t), at2(v, t + 1), total, 'wait', 'add(at(v, t), at(v, t + 1), total, wait);');
+        }
+      }
+      st.loopV = -1; st.loopT = -1;
+      sc.roads.forEach((road, r) => {
+        emit('for (int r = 0; r < static_cast<int>(s.roads.size()); r++) {', `r = ${road.id}`);
+        emit('const Road& road = s.roads[r];', `${road.id}: ${id(road.from)} → ${id(road.to)}, ${road.time} min, ${road.capacity} people/min, ${road.bidirectional ? 'two-way' : 'one-way'}`);
+        if (road.blocked) { emit('if (road.blocked) continue;', 'Closed → skip.'); return; }
+        emit('if (road.blocked) continue;', 'The road is open.');
+        for (let t = 0; t + road.time <= H; t++) {
+          st.loopT = t; emit('for (int t = 0; t + road.time <= horizon; t++) {', `t = ${t}: ${t} + ${road.time} ≤ ${H}`);
+          emit('EdgeInfo travel{EdgeKind::Travel};', 'travel edge'); emit('travel.road = r;', `road = ${road.id}`);
+          emit('travel.start = t;', `start = ${t}`); emit('travel.end = t + road.time;', `end = ${t + road.time}`);
+          emit('travel.from = road.from;', `from = ${id(road.from)}`, 0); emit('travel.to = road.to;', `to = ${id(road.to)}`, 0);
+          add(at2(road.from, t), at2(road.to, t + road.time), road.capacity, 'travel', 'add(at(road.from, t), at(road.to, t + road.time), road.capacity, travel);');
+          if (road.bidirectional) {
+            emit('if (road.bidirectional) {', 'Two-way → add the reverse direction as well.');
+            emit('travel.from = road.to;', `from = ${id(road.to)}`, 0); emit('travel.to = road.from;', `to = ${id(road.from)}`, 0);
+            add(at2(road.to, t), at2(road.from, t + road.time), road.capacity, 'travel', 'add(at(road.to, t), at(road.from, t + road.time), road.capacity, travel);', { reverse: true });
+          } else emit('if (road.bidirectional) {', 'One-way → no reverse edge.');
+        }
+        st.loopT = -1;
+        emit('for (int t = 0; t + road.time <= horizon; t++) {', `t = ${H - road.time + 1}: ${H - road.time + 1} + ${road.time} > ${H} → stop (would arrive after the deadline).`);
+      });
+      shelters.forEach((v, i) => {
+        emit('for (int i = 0; i < static_cast<int>(shelters.size()); i++) {', `i = ${i}`);
+        emit('const int v = shelters[i], gate = gateOffset + i;', `v = ${id(v)}, gate = ${st.vars.gateOffset + i}`);
+        for (let t = 0; t <= H; t++) {
+          st.loopT = t; emit('for (int t = 0; t <= horizon; t++) {', `t = ${t}`);
+          emit('EdgeInfo arrive{EdgeKind::Arrive, v};', `arrival at ${id(v)}`); emit('arrive.start = t;', `minute ${t}`);
+          add(at2(v, t), st.vars.gateOffset + i, total, 'arrive', 'add(at(v, t), gate, total, arrive);');
+        }
+        st.loopT = -1;
+        add(st.vars.gateOffset + i, st.vars.sink, sc.nodes[v].capacity, 'gate', 'add(gate, net.sink, s.nodes[v].capacity, {EdgeKind::ShelterGate, v});');
+      });
+      st.latest = -1;
+      emit('return net;', `${st.vars.sink + 1} vertices and ${st.edges.length} edges. Now maxFlow(source, sink) gives the answer.`);
+      const flow = maxFlow(st.vars.sink + 1, st.edges.map((e) => [e.u, e.v, e.c]), st.vars.source, st.vars.sink);
+      const arrivals = Array(H + 1).fill(0);
+      st.edges.forEach((e, k) => { if (e.kind === 'arrive') arrivals[Math.floor(e.u / count)] += flow.flow[k]; });
+      this.final = { value: flow.value, flow: flow.flow, arrivals, count, shelters, sc };
+      return steps;
+    },
+    draw(step, svg) {
+      const s = step.s, H = this.H, f = this.final, sc = f.sc, count = f.count, id = (v) => sc.nodes[v].id;
+      const x0 = 150, dx = Math.min(115, 560 / H), rowY = (v) => 120 + v * 170, lastX = x0 + H * dx;
+      const nodes = [];
+      const vis = s.vertices, V = s.vars;
+      const gateOffset = count * (H + 1), source = gateOffset + f.shelters.length, sink = source + 1;
+      for (let t = 0; t <= H; t++) for (let v = 0; v < count; v++) {
+        const x = t * count + v;
+        nodes.push({ id: String(x), x: x0 + t * dx, y: rowY(v), r: 21, label: `${id(v)},${t}`, fontSize: 12.5, idx: vis ? x : undefined, cls: (vis ? '' : 'dim') + (s.loopV === v && s.loopT === t ? ' current' : ''), title: `vertex ${x} = at(${id(v)}, ${t})` });
+      }
+      f.shelters.forEach((v, i) => nodes.push({ id: String(gateOffset + i), x: lastX + 105, y: rowY(v) + 110, r: 20, label: 'gate', fontSize: 11.5, idx: vis ? gateOffset + i : undefined, cls: vis ? '' : 'dim', title: `gate for shelter ${id(v)}` }));
+      nodes.push({ id: String(source), x: 55, y: rowY(0), r: 23, label: 'src', cls: vis ? 'special' : 'dim', idx: vis ? source : undefined, fontSize: 12 });
+      nodes.push({ id: String(sink), x: lastX + 105, y: rowY(0) + 30, r: 23, label: 'sink', cls: vis ? 'special' : 'dim', idx: vis ? sink : undefined, fontSize: 12 });
+      const overlay = this.overlay && step === this._lastStep;
+      const edges = s.edges.map((e, k) => {
+        const fl = overlay ? f.flow[k] : 0, isNew = k === s.latest;
+        const cls = isNew ? 'new' : overlay ? (fl ? 'flow' : 'faint') : e.kind === 'travel' ? 'travel' : 'wait';
+        let label = e.kind === 'travel' || e.kind === 'gate' || e.kind === 'source' ? String(e.c) : (isNew ? String(e.c) : '');
+        if (overlay) label = fl ? `${fl}/${e.c}` : '';
+        return { from: String(e.u), to: String(e.v), cls, arrow: isNew ? 'new' : overlay && fl ? 'flow' : 'base', offset: e.reverse ? 14 : 0, label, labelCls: isNew ? 'hot' : overlay && fl ? 'good' : 'small', title: `${e.kind} edge, capacity ${e.c}` };
+      });
+      drawGraph(svg, {
+        viewBox: `0 0 ${Math.max(900, lastX + 170)} 470`, nodes, edges,
+        before: (g) => {
+          for (let t = 0; t <= H; t++) g.append(el('text', { x: x0 + t * dx, y: 40, class: 'axis-label', style: 'font-size:13px;font-weight:600' }, 'minute ' + t));
+          g.append(el('line', { x1: x0 - 30, x2: lastX + 30, y1: 52, y2: 52, class: 'axis' }));
+        }
+      });
+      const kinds = { source: 0, wait: 0, travel: 0, arrive: 0, gate: 0 };
+      s.edges.forEach((e) => kinds[e.kind]++);
+      const pairs = [['count', V.count], ['horizon H', V.H], ['gateOffset', V.gateOffset], ['source', V.source], ['sink', V.sink], ['total', V.total]].filter(([, v]) => v !== undefined);
+      const panels = [
+        panel('Variables', pairs.length ? kv(pairs) : '<span class="empty">none yet</span>'),
+        panel('Edges added so far', kv([['source edges', kinds.source], ['waiting edges', kinds.wait], ['travel edges', kinds.travel], ['arrival edges', kinds.arrive], ['gate → sink', kinds.gate], ['total', s.edges.length]]))
+      ];
+      if (overlay) panels.push(panel(`Max-flow solution (H = ${H})`, `${kv([['people safe by minute ' + H, f.value + ' of ' + sc.total]])}<div style="margin-top:8px">${arrayTable(f.arrivals.map((_, t) => 'min ' + t), f.arrivals.map((a) => ({ text: a, cls: a ? 'good' : 'dim' })))}</div><p class="hint" style="margin-top:6px">Arrivals per minute: 3 people/min enter the road, and each trip takes 2 minutes.</p>`, true));
+      else if (this.overlay) panels.push(panel('Max-flow solution', '<span class="empty">Go to the last step (⏭) to see the flow on the finished network.</span>', true));
+      return {
+        legend: legend([['line', '#c9d2c6', 'wait (v,t)→(v,t+1)'], ['line', '#8fae99', 'travel (departs t, arrives t+2)'], ['line', '#df7844', 'edge just added'], ['line', '#215f50', 'carries flow (solution)'], ['fill', '#163f36', 'source / sink']]),
+        panels
+      };
+    },
+    check() {
+      if (!ENGINE) return null;
+      const r = ENGINE.solveDeadline(toRaw(this.scenario()), this.H);
+      return { ok: JSON.stringify(r.arrivals) === JSON.stringify(this.final.arrivals) && r.evacuated === this.final.value, text: `C++ solveDeadline(H=${this.H}): ${r.evacuated} safe, arrivals ${r.arrivals.join(',')}` };
+    }
+  };
+
+  // ------------------------------------------------------------ Scene 5: binary search (analyze)
+  const searchScene = {
+    key: 'search', tab: 'Binary search', tabSub: 'earliest evacuation', title: 'analyze(): earliest time everyone can be safe',
+    sub: 'maxEvacuatedBy(H) never decreases as H grows, so binary search needs only a few max-flow runs instead of all 61.',
+    code: extract('Analysis analyze('),
+    sample: 0, H: 12, showAll: false,
+    controls() {
+      return `<label>Network <select data-k="sample">${SAMPLES.map((s, i) => `<option value="${i}" ${i === this.sample ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></label>
+        <label>Deadline <select data-k="H">${Array.from({ length: 21 }, (_, h) => `<option ${h === this.H ? 'selected' : ''}>${h}</option>`).join('')}</select></label>
+        <label><input type="checkbox" data-k="showAll" ${this.showAll ? 'checked' : ''}> Show all 61 values (for comparison)</label>`;
+    },
+    onControl(k, v, input) { if (k === 'sample') { this.sample = +v; this.H = this.sample === 3 ? 3 : 12; } else if (k === 'H') this.H = +v; else { this.showAll = input.checked; return 'redraw'; } },
+    explanations: [
+      ['Analysis analyze(', 'Runs every algorithm for one scenario and deadline H, then finds the earliest deadline at which everyone can be safe.'],
+      ['Analysis a;', 'Empty result.'],
+      ['a.plan = solveDeadline(s, horizon);', 'Max flow on the time-expanded network for the chosen deadline, plus the full schedule.'],
+      ['for (int v = 0; v < static_cast<int>(s.nodes.size()); v++) {', 'For every location …'],
+      ['if (s.nodes[v].type != LocationType::Origin) continue;', '… but only origins (residential areas) are analysed.'],
+      ['OriginAnalysis o{v, bfs(s, v), dijkstra(s, v), false};', 'Runs BFS and Dijkstra from this origin.'],
+      ['for (const ShelterRoute& route : o.routes.shelters)', 'Look at every shelter route from Dijkstra …'],
+      ['if (route.time != UNREACHABLE) o.reachable = true;', '… if any shelter can be reached, the origin is not isolated.'],
+      ['if (!o.reachable) a.isolatedPopulation += s.nodes[v].population;', 'Count people who cannot reach any shelter at all.'],
+      ['a.origins.push_back(o);', 'Save the per-origin analysis.'],
+      ['a.eventual = eventualCapacity(s);', 'A second max flow <b>ignoring time</b>: how many people could ever be sheltered, given unlimited time?'],
+      ['const int total = a.plan.total;', 'Total population.'],
+      ['if (total == 0) {', 'Nobody to evacuate?'],
+      ['a.completion = {CompletionStatus::Complete, 0};', 'Then evacuation is complete at minute 0.'],
+      ['} else if (a.eventual < total) {', 'If even unlimited time cannot shelter everyone (not enough reachable space) …'],
+      ['a.completion = {CompletionStatus::Impossible, 0};', '… full evacuation is impossible. No search is needed.'],
+      ['std::map<int, int> cache{{horizon, a.plan.evacuated}};', 'Memo of max-flow results by deadline. The chosen deadline is already known.'],
+      ['auto value = [&](int h) {', 'value(h) = max people safe by minute h. Each new h costs one max-flow computation.'],
+      ['if (!cache.count(h)) cache[h] = maxEvacuatedBy(s, h);', 'Compute only if it is not cached.'],
+      ['return cache[h];', 'Return the cached value.'],
+      ['const bool doneByDeadline = a.plan.evacuated == total;', 'Did everyone make it by the chosen deadline?'],
+      ['int lo = doneByDeadline ? 0 : horizon + 1;', 'Search range: if the deadline was enough, the answer is in [0, H]; otherwise it is in [H+1, 60].'],
+      ['int hi = doneByDeadline ? horizon : Limits::horizon;', 'Upper end of the range.'],
+      ['if (lo > hi || value(hi) < total) {', 'If even the upper end is not enough, the answer is beyond the 60-minute search limit.'],
+      ['a.completion = {CompletionStatus::BeyondLimit, 0};', 'Reported as "> 60 min" (not "impossible").'],
+      ['while (lo < hi) {', '<b>Binary search.</b> Invariant: value(hi) == total, and every deadline below lo is too short.'],
+      ['int mid = (lo + hi) / 2;', 'Middle of the range.'],
+      ['if (value(mid) == total) hi = mid;', 'Everyone safe by mid → the answer is ≤ mid, so keep the left half.'],
+      ['else lo = mid + 1;', 'Not everyone → the answer is > mid, so keep the right half.'],
+      ['a.completion = {CompletionStatus::Complete, lo};', 'lo == hi is the earliest full-evacuation time. It took O(log 60) max-flow runs.'],
+      ['return a;', 'The complete analysis.']
+    ],
+    trace(at) {
+      const sc = prepare(SAMPLES[this.sample]), H = this.H, steps = [], total = sc.total;
+      this.sc = sc;
+      const st = { cache: {}, lo: null, hi: null, mid: null, evalH: null, total, eventual: null, status: null, answer: null, isolated: 0, origin: -1 };
+      const emit = (a, note, nth) => steps.push({ line: at(a, nth), note, s: clone(st) });
+      const id = (v) => sc.nodes[v].id;
+      emit('Analysis a;', `Scenario: ${sc.name}, deadline H = ${H}`);
+      const planValue = maxEvacuatedBy(sc, H); st.cache[H] = planValue; st.evalH = H;
+      emit('a.plan = solveDeadline(s, horizon);', `Max flow by minute ${H}: ${planValue} of ${total} people.`);
+      st.evalH = null;
+      const graph = buildAdjacency(sc);
+      sc.nodes.forEach((n, v) => {
+        emit('for (int v = 0; v < static_cast<int>(s.nodes.size()); v++) {', `v = ${id(v)}`);
+        if (n.type !== 'origin') { emit('if (s.nodes[v].type != LocationType::Origin) continue;', `${id(v)} is not an origin → skip.`); return; }
+        emit('if (s.nodes[v].type != LocationType::Origin) continue;', `${id(v)} is an origin (${n.population} people).`);
+        st.origin = v; emit('OriginAnalysis o{v, bfs(s, v), dijkstra(s, v), false};', `BFS and Dijkstra from ${id(v)}.`);
+        const seen = new Set([v]), q = [v];
+        for (let h = 0; h < q.length; h++) for (const a of graph[q[h]]) if (!seen.has(a.to)) { seen.add(a.to); q.push(a.to); }
+        const reachable = sc.nodes.some((x, w) => x.type === 'shelter' && x.capacity > 0 && seen.has(w));
+        emit('for (const ShelterRoute& route : o.routes.shelters)', 'Check its shelter routes.');
+        emit('if (route.time != UNREACHABLE) o.reachable = true;', reachable ? 'A shelter is reachable.' : 'No shelter is reachable.');
+        if (!reachable) st.isolated += n.population;
+        emit('if (!o.reachable) a.isolatedPopulation += s.nodes[v].population;', `isolatedPopulation = ${st.isolated}`);
+        emit('a.origins.push_back(o);', 'Saved.');
+      });
+      st.origin = -1;
+      st.eventual = eventualCapacity(sc); emit('a.eventual = eventualCapacity(s);', `Given unlimited time, at most ${st.eventual} of ${total} people could be sheltered.`);
+      emit('const int total = a.plan.total;', `total = ${total}`);
+      if (total === 0) { emit('if (total == 0) {', 'Nobody to evacuate.'); st.status = 'complete'; st.answer = 0; emit('a.completion = {CompletionStatus::Complete, 0};', 'Complete at minute 0.'); }
+      else {
+        emit('if (total == 0) {', `total = ${total} > 0`);
+        if (st.eventual < total) {
+          emit('} else if (a.eventual < total) {', `${st.eventual} < ${total} → some people can never be sheltered.`);
+          st.status = 'impossible'; emit('a.completion = {CompletionStatus::Impossible, 0};', 'Full evacuation is impossible on this network.');
+        } else {
+          emit('} else if (a.eventual < total) {', `${st.eventual} = ${total} → everyone can eventually be sheltered, so search for the earliest time.`);
+          emit('std::map<int, int> cache{{horizon, a.plan.evacuated}};', `cache = {${H}: ${planValue}}`);
+          emit('auto value = [&](int h) {', 'Lambda defined.');
+          const done = planValue === total;
+          emit('const bool doneByDeadline = a.plan.evacuated == total;', `${planValue} ${done ? '==' : '<'} ${total} → doneByDeadline = ${done}`);
+          st.lo = done ? 0 : H + 1; emit('int lo = doneByDeadline ? 0 : horizon + 1;', `lo = ${st.lo}`);
+          st.hi = done ? H : 60; emit('int hi = doneByDeadline ? horizon : Limits::horizon;', `hi = ${st.hi}`);
+          const value = (h) => { st.evalH = h; if (!(h in st.cache)) { st.cache[h] = maxEvacuatedBy(sc, h); return [st.cache[h], true]; } return [st.cache[h], false]; };
+          let beyond = st.lo > st.hi;
+          if (!beyond) { const [vh, fresh] = value(st.hi); beyond = vh < total; emit('if (lo > hi || value(hi) < total) {', `value(${st.hi}) = ${vh}${fresh ? ' (new max-flow run)' : ' (cached)'} ${beyond ? '<' : '='} ${total}`); }
+          else emit('if (lo > hi || value(hi) < total) {', `lo > hi`);
+          st.evalH = null;
+          if (beyond) { st.status = 'beyond'; emit('a.completion = {CompletionStatus::BeyondLimit, 0};', 'Not everyone is safe even by minute 60 → "> 60 min".'); }
+          else {
+            while (st.lo < st.hi) {
+              st.mid = null; emit('while (lo < hi) {', `lo = ${st.lo}, hi = ${st.hi} → continue`);
+              st.mid = Math.floor((st.lo + st.hi) / 2); emit('int mid = (lo + hi) / 2;', `mid = (${st.lo} + ${st.hi}) / 2 = ${st.mid}`);
+              const [vm, fresh] = value(st.mid);
+              if (vm === total) { emit('if (value(mid) == total) hi = mid;', `value(${st.mid}) = ${vm}${fresh ? ' (new max-flow run)' : ' (cached)'} = total → hi = ${st.mid}`); st.hi = st.mid; }
+              else { emit('if (value(mid) == total) hi = mid;', `value(${st.mid}) = ${vm}${fresh ? ' (new max-flow run)' : ' (cached)'} < ${total}`); st.lo = st.mid + 1; emit('else lo = mid + 1;', `lo = ${st.lo}`); }
+              st.evalH = null;
+            }
+            st.mid = null; emit('while (lo < hi) {', `lo = hi = ${st.lo} → stop`);
+            st.status = 'complete'; st.answer = st.lo; emit('a.completion = {CompletionStatus::Complete, lo};', `Earliest full evacuation: ${st.lo} minutes.`);
+          }
+        }
+      }
+      const runs = Object.keys(st.cache).length;
+      emit('return a;', `${st.status === 'complete' ? 'Complete in ' + st.answer + ' min' : st.status === 'impossible' ? 'Impossible' : '> 60 min'}, using ${runs} time-expanded max-flow run${runs > 1 ? 's' : ''} (instead of 61).`);
+      this.final = { status: st.status, minutes: st.answer, evacuated: planValue };
+      this.all = null;
+      return steps;
+    },
+    draw(step, svg) {
+      const s = step.s, total = s.total, x0 = 60, W = 790, dx = W / 60, base = 300, top = 70, hgt = base - top;
+      const X = (h) => x0 + h * dx;
+      if (this.showAll && !this.all) this.all = Array.from({ length: 61 }, (_, h) => maxEvacuatedBy(this.sc, h));
+      drawGraph(svg, {
+        viewBox: '0 0 900 400', nodes: [], edges: [],
+        after: (g) => {
+          g.append(el('line', { x1: x0 - 10, x2: x0 + W + 10, y1: base, y2: base, class: 'axis' }));
+          g.append(el('line', { x1: x0 - 10, x2: x0 + W + 10, y1: top, y2: top, class: 'axis', 'stroke-dasharray': '5 4' }));
+          g.append(el('text', { x: x0 + W, y: top - 8, class: 'axis-label', style: 'text-anchor:end' }, `total = ${total}`));
+          g.append(el('text', { x: 20, y: top - 22, class: 'axis-label', style: 'text-anchor:start' }, 'people safe by minute h  =  value(h)'));
+          for (let h = 0; h <= 60; h += 5) g.append(el('text', { x: X(h), y: base + 18, class: 'axis-label' }, h));
+          g.append(el('text', { x: x0 + W / 2, y: base + 36, class: 'axis-label' }, 'deadline h (minutes)'));
+          for (let h = 0; h <= 60; h++) {
+            const known = h in s.cache, v = known ? s.cache[h] : this.showAll && this.all ? this.all[h] : null;
+            if (v === null) { g.append(el('line', { x1: X(h), x2: X(h), y1: base, y2: base - 4, class: 'axis' })); continue; }
+            const bh = total ? Math.max(2, v / total * hgt) : 2;
+            const r = el('rect', { x: X(h) - dx * 0.38, y: base - bh, width: dx * 0.76, height: bh, rx: 2, class: 'bar ' + (known ? (v === total ? 'full' : 'part') : 'ghost') + (h === s.evalH ? ' hot' : '') });
+            r.append(el('title', {}, `value(${h}) = ${v}`));
+            g.append(r);
+            if (known) g.append(el('text', { x: X(h), y: base - bh - 7, class: 'axis-label', 'font-weight': 700, fill: '#2f463d' }, v));
+          }
+          const mark = (h, label, color, dy) => {
+            if (h === null || h === undefined) return;
+            g.append(el('line', { x1: X(h), x2: X(h), y1: top - 8, y2: base + 48 + dy, class: 'marker-line', stroke: color }));
+            g.append(el('text', { x: X(h), y: base + 62 + dy, class: 'marker-text', fill: color }, label + ' = ' + h));
+          };
+          mark(s.lo, 'lo', '#df7844', 0); mark(s.hi, 'hi', '#215f50', 18); mark(s.mid, 'mid', '#6b4fb3', 36);
+          if (s.status) {
+            const msg = s.status === 'complete' ? `Earliest full evacuation: ${s.answer} min` : s.status === 'impossible' ? 'Impossible: not enough reachable shelter space' : 'Beyond the 60-minute search limit';
+            g.append(el('text', { x: x0 + W, y: 30, class: 'marker-text', style: 'text-anchor:end', fill: s.status === 'complete' ? '#215f50' : '#c8514a' }, msg));
+          }
+        }
+      });
+      const runs = Object.keys(s.cache).length;
+      return {
+        legend: legend([['fill', '#215f50', 'value(h) = total (everyone safe)'], ['fill', '#df7844', 'value(h) < total'], ['line', '#df7844', 'lo'], ['line', '#215f50', 'hi'], ['line', '#6b4fb3', 'mid']]),
+        panels: [
+          panel('Search state', kv([['total', total], ['eventual', s.eventual === null ? '—' : s.eventual], ['lo', s.lo === null ? '—' : s.lo], ['hi', s.hi === null ? '—' : s.hi], ['mid', s.mid === null ? '—' : s.mid]])),
+          panel('cache (h → value)', chips(Object.entries(s.cache).sort((a, b) => a[0] - b[0]).map(([h, v]) => ({ text: `${h} → ${v}`, cls: +h === s.evalH ? 'hot' : v === total ? 'good' : '' })), 'empty')),
+          panel('Cost', kv([['max-flow runs so far', runs], ['linear search would need', 'up to 61'], ['isolated people', s.isolated]]))
+        ]
+      };
+    },
+    check() {
+      if (!ENGINE) return null;
+      const r = ENGINE.analyze(SAMPLES[this.sample], this.H), c = r.completion;
+      const status = { complete: 'complete', impossible: 'impossible', beyond_limit: 'beyond' }[c.status];
+      return { ok: status === this.final.status && (c.minutes ?? null) === (this.final.minutes ?? null) && r.evacuated === this.final.evacuated,
+        text: `C++ analyze(): ${r.evacuated}/${r.total} by ${this.H} min; ${c.status === 'complete' ? 'earliest ' + c.minutes + ' min' : c.status}` };
+    }
+  };
+
+  // ------------------------------------------------------------ page controller
+  const SCENES = [bfsScene, dijkstraScene, flowScene, expandedScene, searchScene];
+  const ui = { scene: null, steps: [], cur: 0, occ: [], timer: null, hoverLine: null };
+
+  function setupScene(scene) {
+    scene.at = anchors(scene.code);
+    scene.lineText = new Map();
+    for (const [anchor, text, nth] of scene.explanations) scene.lineText.set(scene.at(anchor, nth), text);
+  }
+
+  function renderTabs() {
+    $('tabs').innerHTML = SCENES.map((s, i) => `<button class="tab ${s === ui.scene ? 'active' : ''}" data-i="${i}" aria-pressed="${s === ui.scene}"><strong>${i + 1}. ${esc(s.tab)}</strong><span>${esc(s.tabSub)}</span></button>`).join('');
+  }
+
+  function renderControls() {
+    $('scene-controls').innerHTML = ui.scene.controls ? ui.scene.controls() : '';
+  }
+
+  function renderCode() {
+    const scene = ui.scene;
+    $('code-title').textContent = scene.title;
+    $('code').innerHTML = scene.code.map((l, i) => {
+      const runs = ui.occ[i].length, t = l.text.trim();
+      const cls = ['ln', runs ? 'runs' : '', t.startsWith('//') ? 'comment' : ''].join(' ');
+      return `<div class="${cls}" data-i="${i}" ${runs ? 'tabindex="-1"' : ''}><span class="hits">${runs ? '×' + runs : ''}</span><span class="no">${l.no}</span><span class="src">${highlight(l.text) || ' '}</span></div>`;
+    }).join('');
+    $('code-hint').textContent = 'Lines with ×n run n times in this example';
+  }
+
+  function rebuild(keepTab) {
+    stop();
+    const scene = ui.scene;
+    let steps;
+    try { steps = scene.trace(scene.at); }
+    catch (error) { $('now-text').textContent = 'Error: ' + error.message; throw error; }
+    ui.steps = steps;
+    ui.occ = scene.code.map(() => []);
+    steps.forEach((s, k) => ui.occ[s.line].push(k));
+    ui.cur = 0;
+    $('slider').max = steps.length - 1;
+    scene._lastStep = steps[steps.length - 1];
+    renderControls();
+    renderCode();
+    runCheck();
+    render({ scroll: true });
+  }
+
+  function runCheck() {
+    const box = $('check');
+    let result = null;
+    try { result = ui.scene.check(); } catch (error) { result = { ok: false, text: 'C++ check failed: ' + error.message }; }
+    if (!result) { box.className = 'check'; box.textContent = 'C++ engine not loaded; replay only'; return; }
+    box.className = 'check ' + (result.ok ? 'ok' : 'bad');
+    box.textContent = (result.ok ? '✓ Same result as the C++ engine. ' : '✗ Differs from the C++ engine. ') + result.text;
+  }
+
+  function lineExplanation(i) {
+    const scene = ui.scene, l = scene.code[i], t = l.text.trim();
+    if (scene.lineText.has(i)) return scene.lineText.get(i);
+    if (!t) return 'Blank line.';
+    if (t.startsWith('//')) return 'Comment: documentation for the reader. It is not executed.';
+    if (/^[})\]];?$/.test(t) || t === '}') return 'Closes the block opened above.';
+    return 'Part of the statement above.';
+  }
+
+  function render(opts = {}) {
+    const scene = ui.scene, preview = opts.preview ?? null, idx = preview ?? ui.cur, step = ui.steps[idx];
+    const shownLine = opts.hoverLine ?? step.line;
+    // code highlight
+    document.querySelectorAll('#code .ln').forEach((row) => {
+      const i = +row.dataset.i;
+      row.classList.toggle('current', i === ui.steps[ui.cur].line);
+      row.classList.toggle('preview', preview !== null && i === step.line && i !== ui.steps[ui.cur].line);
+    });
+    if (opts.scroll) {
+      const row = document.querySelector(`#code .ln[data-i="${ui.steps[ui.cur].line}"]`), box = $('code');
+      if (row) {
+        const top = row.offsetTop - box.offsetTop, bottom = top + row.offsetHeight;
+        if (top < box.scrollTop + 30 || bottom > box.scrollTop + box.clientHeight - 30) box.scrollTop = Math.max(0, top - box.clientHeight / 2);
+      }
+    }
+    // explanation
+    const l = scene.code[shownLine], runs = ui.occ[shownLine].length;
+    $('line-kicker').textContent = `Line ${l.no}${runs ? ` · runs ${runs} time${runs > 1 ? 's' : ''}` : ' · not executed as a step'}`;
+    $('line-text').innerHTML = lineExplanation(shownLine);
+    if (opts.hoverLine !== undefined && opts.hoverLine !== null && !runs) {
+      $('now-kicker').innerHTML = `Step ${ui.cur + 1} of ${ui.steps.length}`;
+    } else {
+      const which = ui.occ[step.line].indexOf(idx) + 1;
+      $('now-kicker').innerHTML = preview !== null && preview !== ui.cur
+        ? `<span class="preview-tag">Preview · step ${idx + 1} of ${ui.steps.length} (run ${which} of ${ui.occ[step.line].length}) · click to jump here</span>`
+        : `Step ${idx + 1} of ${ui.steps.length}${ui.occ[step.line].length > 1 ? ` · run ${which} of ${ui.occ[step.line].length}` : ''}`;
+    }
+    $('now-text').textContent = step.note;
+    // visual
+    $('visual-title').textContent = scene.title;
+    $('visual-sub').textContent = scene.sub;
+    const out = scene.draw(step, $('viz'));
+    $('legend').innerHTML = out.legend;
+    $('panels').innerHTML = out.panels.join('');
+    // stepper
+    $('slider').value = ui.cur;
+    $('counter').textContent = `step ${ui.cur + 1} / ${ui.steps.length}`;
+  }
+
+  function go(k, scroll = true) { ui.cur = Math.max(0, Math.min(ui.steps.length - 1, k)); render({ scroll }); }
+  function stop() { if (ui.timer) clearInterval(ui.timer); ui.timer = null; $('play').textContent = '▶ Play'; }
+  function play() {
+    if (ui.timer) { stop(); return; }
+    if (ui.cur >= ui.steps.length - 1) ui.cur = 0;
+    $('play').textContent = '❚❚ Pause';
+    ui.timer = setInterval(() => { if (ui.cur >= ui.steps.length - 1) { stop(); return; } go(ui.cur + 1); }, +$('speed').value);
+  }
+
+  function selectScene(scene) {
+    ui.scene = scene;
+    renderTabs();
+    rebuild();
+  }
+
+  // ------------------------------------------------------------ events
+  $('tabs').addEventListener('click', (e) => { const b = e.target.closest('.tab'); if (b) selectScene(SCENES[+b.dataset.i]); });
+  $('scene-controls').addEventListener('change', (e) => {
+    const k = e.target.dataset.k; if (!k) return;
+    const r = ui.scene.onControl(k, e.target.value, e.target);
+    if (r === 'redraw') render(); else rebuild();
+  });
+  $('first').onclick = () => { stop(); go(0); };
+  $('prev').onclick = () => { stop(); go(ui.cur - 1); };
+  $('next').onclick = () => { stop(); go(ui.cur + 1); };
+  $('last').onclick = () => { stop(); go(ui.steps.length - 1); };
+  $('play').onclick = play;
+  $('speed').onchange = () => { if (ui.timer) { stop(); play(); } };
+  $('slider').oninput = (e) => { stop(); go(+e.target.value); };
+
+  const code = $('code');
+  code.addEventListener('mouseover', (e) => {
+    const row = e.target.closest('.ln'); if (!row) return;
+    const i = +row.dataset.i; if (ui.hoverLine === i) return;
+    ui.hoverLine = i;
+    const occ = ui.occ[i];
+    if (!occ.length) { render({ hoverLine: i }); return; }
+    const next = occ.find((k) => k >= ui.cur);
+    render({ preview: next ?? occ[occ.length - 1], hoverLine: i });
+  });
+  code.addEventListener('mouseleave', () => { ui.hoverLine = null; render(); });
+  code.addEventListener('click', (e) => {
+    const row = e.target.closest('.ln'); if (!row) return;
+    const i = +row.dataset.i, occ = ui.occ[i]; if (!occ.length) return;
+    stop();
+    const onThisLine = ui.steps[ui.cur].line === i;
+    let target = onThisLine ? occ.find((k) => k > ui.cur) : occ.find((k) => k >= ui.cur);
+    if (target === undefined) target = occ[0];
+    ui.cur = target;
+    const next = occ.find((k) => k > ui.cur);
+    render({ preview: null, hoverLine: i });
+    if (next === undefined && occ.length > 1) $('now-kicker').innerHTML += ' · last run (the next click starts again from the first)';
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest('select, input, textarea')) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); stop(); go(ui.cur + 1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); stop(); go(ui.cur - 1); }
+    else if (e.key === ' ') { e.preventDefault(); play(); }
+    else if (e.key === 'Home') { e.preventDefault(); stop(); go(0); }
+    else if (e.key === 'End') { e.preventDefault(); stop(); go(ui.steps.length - 1); }
+  });
+
+  // ------------------------------------------------------------ start
+  // Address format: walkthrough.html#dijkstra or #dijkstra-60 (open a tab at a given step).
+  function openFromHash() {
+    const m = /^#([a-z]+)(?:-(\d+))?$/.exec(location.hash);
+    const scene = m && SCENES.find((s) => s.key === m[1]);
+    if (!scene) return false;
+    if (scene !== ui.scene) selectScene(scene);
+    if (m[2]) go(+m[2] - 1);
+    return true;
+  }
+  function start() {
+    SCENES.forEach(setupScene);
+    if (!openFromHash()) selectScene(SCENES[0]);
+    window.addEventListener('hashchange', openFromHash);
+  }
+  window.__walkthrough = { SCENES, ui, go, selectScene };
+  const ready = ENGINE && ENGINE.ready ? ENGINE.ready.catch(() => null) : Promise.resolve();
+  ready.then(start);
+})();
+</script>
+</body>
+</html>

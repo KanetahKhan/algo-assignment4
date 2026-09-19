@@ -1,7 +1,8 @@
 """Optional independent check: Python 3 + SciPy + Node.js.
 
-Builds a differently indexed time-expanded graph and checks the JavaScript
-Edmonds-Karp answers against SciPy's Dinic maximum-flow implementation.
+Builds a differently indexed time-expanded graph and checks the C++
+Edmonds-Karp answers (run through the WebAssembly build via Node.js) against
+SciPy's Dinic maximum-flow implementation.
 Not needed to run the app or its dependency-free Node test suite.
 """
 import json
@@ -37,7 +38,7 @@ for case in range(32):
 
 script = """
 const E=require('./src/engine.js');let input='';
-process.stdin.on('data',c=>input+=c);process.stdin.on('end',()=>{
+process.stdin.on('data',c=>input+=c);process.stdin.on('end',async()=>{await E.ready;
  const cases=JSON.parse(input);console.log(JSON.stringify(cases.map(raw=>{
    const s=E.validate(raw);return {values:Array.from({length:61},(_,h)=>E.solveDeadline(s,h,false)),analysis:E.analyze(s,12)};
  })));
