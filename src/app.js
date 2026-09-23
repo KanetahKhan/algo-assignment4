@@ -58,33 +58,60 @@ window.Evacuation.ready.then(function () {
   }
   function point(g,t) { return {x:(1-t)*(1-t)*g.a.x+2*(1-t)*t*g.c.x+t*t*g.b.x,y:(1-t)*(1-t)*g.a.y+2*(1-t)*t*g.c.y+t*t*g.b.y}; }
   function selectedRoutes() { return state.origin ? E.dijkstra(state.scenario,state.origin) : null; }
+  // How hard the plan pushed a road. Peak alone says little: an optimal schedule touches
+  // capacity somewhere on almost every road it uses. A bottleneck is a road that sits at
+  // capacity for most of the minutes it is in use, so that is what share measures.
+  // Capacity is per direction, so each (minute, direction) slot is judged on its own.
+  function roadLoad(road){
+    const use=state.result?.roads?.[road.id];
+    if(!use||!use.people)return null;
+    const slots=Object.create(null);
+    for(const d of use.departures){const key=d.minute+'|'+d.from;slots[key]=(slots[key]||0)+d.people;}
+    const counts=Object.values(slots),full=counts.filter((n)=>n>=road.capacity).length;
+    return {people:use.people,full,active:counts.length,share:counts.length?full/counts.length:0};
+  }
+  function loadColor(share){ return share>=.85?'var(--flow-full)':share>=.4?'var(--flow-busy)':'var(--flow-free)'; }
   function renderMap() {
     const routes=selectedRoutes(), nearest=routes?.shelters.find((s)=>s.time!==null), routeRoads=new Set(nearest?.roads||[]);
+    const busiest=Math.max(1,...state.scenario.roads.map((r)=>roadLoad(r)?.people||0));
     let svg = '<defs><pattern id="grid" width="38" height="38" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".65" fill="#d9e0cf"/></pattern></defs><rect width="900" height="500" fill="url(#grid)"/>';
-    svg += '<g fill="#f0f3e9" stroke="#e9eee0"><rect x="160" y="175" width="87" height="93" rx="14"/><rect x="444" y="73" width="88" height="67" rx="13"/><rect x="505" y="335" width="112" height="95" rx="16"/><rect x="715" y="181" width="92" height="92" rx="22"/></g><g fill="#e6eddd"><circle cx="735" cy="215" r="11"/><circle cx="782" cy="235" r="16"/><circle cx="755" cy="253" r="10"/></g>';
-    svg += '<text x="74" y="456" fill="#b4beac" font-size="9" letter-spacing="2">RESIDENTIAL DISTRICT</text><text x="680" y="458" fill="#b4beac" font-size="9" letter-spacing="2">ASSEMBLY AREAS</text>';
     for (const r of state.scenario.roads) {
       const g=roadGeometry(r),mid=point(g,.5),selected=state.selection?.kind==='road'&&state.selection.id===r.id;
-      const color=r.blocked?'#c86a60':selected?'#d1874d':routeRoads.has(r.id)?'#548c70':'#bcc8b1';
+      const load=r.blocked?null:roadLoad(r);
+      // Once a plan exists, roads it never used recede so the carried routes stand out.
+      // Before then there is nothing to recede from, so every open road stays legible.
+      const quiet=state.result?'var(--road-idle)':'var(--road-plain)';
+      const color=r.blocked?'var(--red)':load?loadColor(load.share):routeRoads.has(r.id)?'var(--green)':quiet;
+      // Selection is shown by the casing underneath, so it never hides the road's load.
+      const width=load?3+11*Math.sqrt(load.people/busiest):routeRoads.has(r.id)?4:state.result?2.5:3.5;
       const path=`M ${g.a.x} ${g.a.y} Q ${g.c.x} ${g.c.y} ${g.b.x} ${g.b.y}`;
-      svg+=`<g data-kind="road" data-id="${escape(r.id)}" tabindex="0" role="button" aria-label="Road ${escape(r.id)}, ${escape(name(r.from))} to ${escape(name(r.to))}, ${r.blocked?'closed':`${r.time} minutes, ${r.capacity} people per minute`}"><path d="${path}" fill="none" stroke="#f9faf6" stroke-width="11"/><path d="${path}" fill="none" stroke="${color}" stroke-width="${selected?4:3}" ${r.blocked?'stroke-dasharray="7 7"':''}/><path class="road-hit" d="${path}" fill="none" stroke="transparent" stroke-width="23"/>`;
+      svg+=`<g data-kind="road" data-id="${escape(r.id)}" tabindex="0" role="button" aria-label="Road ${escape(r.id)}, ${escape(name(r.from))} to ${escape(name(r.to))}, ${r.blocked?'closed':`${r.time} minutes, ${r.capacity} people per minute${load?`, carrying ${load.people} people`:''}`}"><title>${escape(r.id)} · ${escape(name(r.from))} ${r.bidirectional?'↔':'→'} ${escape(name(r.to))}\n${r.blocked?'Closed / damaged':`${r.time} min · ${r.capacity} people per minute per direction`}${load?`\n${fmt(load.people)} people used it · at capacity for ${load.full} of the ${load.active} minute${load.active===1?'':'s'} it was in use`:state.result?'\nUnused by this plan':''}</title><path d="${path}" fill="none" stroke="${selected?'#e0a46a':'#f9faf6'}" stroke-width="${width+(selected?10:8)}"/><path d="${path}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" ${r.blocked?'stroke-dasharray="7 7"':''}/><path class="road-hit" d="${path}" fill="none" stroke="transparent" stroke-width="26"/>`;
       if(!r.bidirectional){const p=point(g,.72),q=point(g,.73),angle=Math.atan2(q.y-p.y,q.x-p.x)*180/Math.PI;svg+=`<path d="M -5 -4 L 4 0 L -5 4" fill="none" stroke="${color}" stroke-width="2" transform="translate(${p.x},${p.y}) rotate(${angle})" pointer-events="none"/>`;}
-      svg+=`<rect x="${mid.x-34}" y="${mid.y-11}" width="68" height="21" rx="5" fill="${selected?'#fff1df':'#ffffff'}" stroke="${selected?'#edd1af':'#e9ede2'}" pointer-events="none"/><text x="${mid.x}" y="${mid.y+3}" text-anchor="middle" class="road-label">${r.blocked?'CLOSED':`${r.time}m · ${r.capacity}/min`}</text></g>`;
+      // Every road keeps a hover tooltip; only these three cases get a permanent label.
+      if(selected||routeRoads.has(r.id)||r.blocked){
+        const text=r.blocked?'CLOSED':`${r.time}m · ${r.capacity}/min`;
+        // Sit the pill beside the travel path, never on it, so moving groups cannot cover it.
+        const dx=g.b.x-g.a.x,dy=g.b.y-g.a.y,len=Math.hypot(dx,dy)||1;
+        const lx=mid.x-dy/len*18,ly=mid.y+dx/len*18;
+        svg+=`<rect x="${lx-36}" y="${ly-12}" width="72" height="23" rx="6" fill="${selected?'#fdeee1':'#ffffff'}" stroke="${selected?'#e8c19a':'#dde3d9'}" pointer-events="none"/><text x="${lx}" y="${ly+4}" text-anchor="middle" class="road-label">${text}</text>`;
+      }
+      svg+='</g>';
     }
     for(const n of state.scenario.nodes){
       const selected=state.selection?.kind==='node'&&state.selection.id===n.id,origin=n.type==='origin',shelter=n.type==='shelter';
       svg+=`<g class="node" data-kind="node" data-id="${escape(n.id)}" tabindex="0" role="button" aria-label="${escape(n.name)}, ${n.type}" transform="translate(${n.x},${n.y})">`;
-      if(selected)svg+='<circle r="31" fill="none" stroke="#87a68b" stroke-dasharray="3 3"/>';
-      if(shelter)svg+='<rect x="-24" y="-24" width="48" height="48" rx="14" fill="#e3eee2" stroke="#fff" stroke-width="4"/><rect x="-17" y="-17" width="34" height="34" rx="9" fill="#376c52"/>';
-      else svg+=`<circle r="${origin?24:14}" fill="${origin?'#f9e9d9':'#edf1e8'}" stroke="#fff" stroke-width="4"/><circle r="${origin?17:8}" fill="${origin?'#df8750':'#a9bba2'}"/>`;
-      svg+=`<text text-anchor="middle" y="4" fill="${origin||shelter?'#fff':'#fff'}" font-size="${origin||shelter?11:7}" font-weight="600">${escape(n.id)}</text><text class="node-label" y="${origin||shelter?41:29}" text-anchor="middle">${escape(n.name)}</text>`;
-      if(origin||shelter)svg+=`<text class="node-count" y="55" text-anchor="middle">${fmt(origin?n.population:n.capacity)} ${origin?'people':'spaces'}</text>`;
+      if(selected)svg+='<circle r="32" fill="none" stroke="#6f7d70" stroke-width="1.5" stroke-dasharray="3 3"/>';
+      if(shelter)svg+='<rect x="-24" y="-24" width="48" height="48" rx="14" fill="#dfeadf" stroke="#fff" stroke-width="4"/><rect x="-17" y="-17" width="34" height="34" rx="9" fill="#1d5748"/>';
+      else svg+=`<circle r="${origin?24:15}" fill="${origin?'#e4ecf5':'#e8ede4'}" stroke="#fff" stroke-width="4"/><circle r="${origin?17:9}" fill="${origin?'#3f6890':'#7d9078'}"/>`;
+      svg+=`<text text-anchor="middle" y="${origin||shelter?4:3}" fill="#fff" font-size="${origin||shelter?12:9}" font-weight="650">${escape(n.id)}</text><text class="node-label" y="${origin||shelter?42:31}" text-anchor="middle">${escape(n.name)}</text>`;
+      if(origin||shelter)svg+=`<text class="node-count" y="58" text-anchor="middle">${fmt(origin?n.population:n.capacity)} ${origin?'people':'spaces'}</text>`;
       svg+='</g>';
     }
     svg+='<g id="people-layer" pointer-events="none"></g>';
     $('network-map').innerHTML=svg;
     $('network-chip').textContent=`${state.scenario.nodes.length} locations · ${state.scenario.roads.length} roads`;
-    $('map-note').textContent=state.result?'Play the plan to see scheduled movement':'Select a road or a location';
+    $('map-legend').classList.toggle('idle',!state.result);
+    $('map-note').textContent=state.result?'Road thickness = people carried · colour = share of active minutes spent at capacity':'Select a road or a location';
     if(nearest){$('route-summary').innerHTML=`<span class="route-dot"></span><div><strong>Fastest route from ${escape(name(state.origin))}:</strong> ${nearest.nodes.map((id)=>escape(name(id))).join(' → ')} · <strong>${nearest.time} min</strong><small>Dijkstra route · travel time only; queues and shelter allocation are handled in the evacuation plan.</small></div>`;}
     else $('route-summary').innerHTML=`<span class="route-dot"></span><div>${state.origin?'No route from this origin to a shelter with space.':'Add a residential location to explore shortest routes.'}<small>Open roads are checked with BFS; road direction is respected.</small></div>`;
     renderPlayback();
@@ -112,12 +139,13 @@ window.Evacuation.ready.then(function () {
   function renderSummary(){
     const r=state.result;
     if(!r){$('panel-summary').innerHTML=`<div class="empty-state"><strong>${state.pending?'Calculating a feasible plan…':'Your next evacuation plan starts here.'}</strong>${state.pending?'Checking travel delays, road capacities and shelter space.':'Choose a deadline, edit the network, then calculate evacuation.'}</div>`;return;}
-    const max=Math.max(1,r.evacuated),baseline=state.baseline,difference=baseline===null?0:r.evacuated-baseline;
-    const bars=r.cumulative.map((v,t)=>`<div class="bar-column" title="Minute ${t}: ${fmt(v)} people sheltered"><div class="bar" style="height:${v/max*100}%"></div></div>`).join('');
+    const max=Math.max(1,r.total),baseline=state.baseline,difference=baseline===null?0:r.evacuated-baseline;
+    const last=r.cumulative.length-1;
+    const bars=r.cumulative.map((v,t)=>`<div class="bar-column" title="Minute ${t}: ${fmt(v)} of ${fmt(r.total)} people sheltered"><div class="bar" style="height:${v/max*100}%"></div>${t===last&&v?`<span class="bar-value" style="bottom:calc(${v/max*100}% + 5px)">${fmt(v)}</span>`:''}</div>`).join('');
     const shelters=state.scenario.nodes.filter((n)=>n.type==='shelter').map((s)=>`<div class="shelter-row"><div class="shelter-label"><strong>${escape(s.name)}</strong><span>${fmt(r.shelters[s.id].used)} / ${fmt(s.capacity)} spaces</span></div><div class="progress-track" aria-label="${escape(s.name)} occupancy"><div class="progress-fill" style="width:${s.capacity?r.shelters[s.id].used/s.capacity*100:0}%"></div></div></div>`).join('')||'<p class="hint">No shelters are configured.</p>';
     const comparison=difference===0?`Same deadline result as the original scenario: ${fmt(baseline??r.evacuated)} arrivals.`:`${fmt(Math.abs(difference))} ${difference>0?'more':'fewer'} people arrive than in the original scenario (${fmt(baseline)}), at the same ${state.deadline}-minute deadline.`;
     const paths=r.paths.slice(0,12).map((p,i)=>`<tr><td class="mono">${String(i+1).padStart(2,'0')}</td><td><strong>${p.people}</strong></td><td>${escape(name(p.origin))}</td><td>${p.steps.filter((s)=>s.type==='travel').map((s)=>escape(s.road)).join(' → ')||'—'}</td><td>${escape(name(p.shelter))}</td><td>${p.arrival} min</td></tr>`).join('');
-    $('panel-summary').innerHTML=`<div class="summary-grid"><div><span class="mini-label">ARRIVALS OVER TIME</span><h3>${fmt(r.evacuated)} people reach shelter by minute ${r.horizon}.</h3><p class="result-subtitle">Cumulative arrivals for this feasible schedule. The solver maximizes the final count.</p><div class="bar-chart" role="img" aria-label="Cumulative shelter arrivals from minute zero to minute ${r.horizon}: ${r.cumulative.join(', ')}">${bars}</div><div class="chart-axis"><span>Minute 0</span><span>Minute ${r.horizon}</span></div></div><div><span class="mini-label">SHELTER ALLOCATION</span><h3>Space, shared across every arrival.</h3>${shelters}</div></div><div class="comparison ${difference<0?'warning':''}">${comparison}${r.isolatedPopulation?` ${fmt(r.isolatedPopulation)} people are isolated from all shelters with space.`:''}</div><div class="table-heading"><div><h3>Scheduled evacuation groups</h3><p class="result-subtitle">${r.paths.length?`Showing ${Math.min(12,r.paths.length)} of ${r.paths.length} groups. Export the schedule for every departure and waiting step.`:'No complete journey is feasible by this deadline.'}</p></div><span class="chip">${r.stats.augmentations} augmenting paths</span></div><div class="table-wrap"><table><thead><tr><th>Group</th><th>People</th><th>Origin</th><th>Road sequence</th><th>Shelter</th><th>Arrival</th></tr></thead><tbody>${paths||'<tr><td colspan="6">No arrivals. Try a later deadline, reopening roads, or adding shelter space.</td></tr>'}</tbody></table></div>`;
+    $('panel-summary').innerHTML=`<div class="summary-grid"><div><span class="mini-label">ARRIVALS OVER TIME</span><h3>${fmt(r.evacuated)} people reach shelter by minute ${r.horizon}.</h3><p class="result-subtitle">Cumulative arrivals for this feasible schedule. The solver maximizes the final count.</p><div class="chart-shell"><div class="chart-target"><span>all ${fmt(r.total)} people</span></div><div class="bar-chart" role="img" aria-label="Cumulative shelter arrivals from minute zero to minute ${r.horizon}, out of ${r.total} people: ${r.cumulative.join(', ')}">${bars}</div></div><div class="chart-axis"><span>Minute 0</span><span><strong>${fmt(r.evacuated)}</strong> of ${fmt(r.total)} sheltered</span><span>Minute ${r.horizon}</span></div></div><div><span class="mini-label">SHELTER ALLOCATION</span><h3>Space, shared across every arrival.</h3>${shelters}</div></div><div class="comparison ${difference<0?'warning':''}">${comparison}${r.isolatedPopulation?` ${fmt(r.isolatedPopulation)} people are isolated from all shelters with space.`:''}</div><div class="table-heading"><div><h3>Scheduled evacuation groups</h3><p class="result-subtitle">${r.paths.length?`Showing ${Math.min(12,r.paths.length)} of ${r.paths.length} groups. Export the schedule for every departure and waiting step.`:'No complete journey is feasible by this deadline.'}</p></div><span class="chip">${r.stats.augmentations} augmenting paths</span></div><div class="table-wrap"><table><thead><tr><th>Group</th><th>People</th><th>Origin</th><th>Road sequence</th><th>Shelter</th><th>Arrival</th></tr></thead><tbody>${paths||'<tr><td colspan="6">No arrivals. Try a later deadline, reopening roads, or adding shelter space.</td></tr>'}</tbody></table></div>`;
   }
   function renderAlgorithms(){
     const traversal=state.origin?E.bfs(state.scenario,state.origin):null,routes=selectedRoutes(),r=state.result;
@@ -167,12 +195,12 @@ window.Evacuation.ready.then(function () {
       if(step.type==='wait'){waiting[step.at]=(waiting[step.at]||0)+p.people;continue;}
       const road=state.scenario.roads.find((road)=>road.id===step.road),g=roadGeometry(road);
       let fraction=(time-step.start)/(step.end-step.start);if(road.from!==step.from)fraction=1-fraction;
-      const pos=point(g,fraction),radius=Math.min(8,3+Math.sqrt(p.people)*.6);
-      markers+=`<circle cx="${pos.x}" cy="${pos.y}" r="${radius}" fill="#d99041" stroke="#fff" stroke-width="2"><title>${p.people} people · ${escape(step.road)} · ${escape(name(p.shelter))}</title></circle>`;
+      const pos=point(g,fraction),radius=Math.min(9,4+Math.sqrt(p.people)*.6);
+      markers+=`<circle cx="${pos.x}" cy="${pos.y}" r="${radius}" fill="#3f6890" stroke="#fff" stroke-width="2"><title>${p.people} people · ${escape(step.road)} · ${escape(name(p.shelter))}</title></circle>`;
     }
     for(const [id,count]of Object.entries(waiting)){
       const n=state.scenario.nodes.find((n)=>n.id===id);
-      markers+=`<g transform="translate(${n.x+20},${n.y-23})"><rect x="-12" y="-9" width="30" height="18" rx="8" fill="#fff3d7" stroke="#e3c98f"/><text x="3" y="3" text-anchor="middle" font-size="9" fill="#987035">${count}</text></g>`;
+      markers+=`<g transform="translate(${n.x+20},${n.y-23})"><rect x="-14" y="-11" width="34" height="22" rx="9" fill="#fdeee1" stroke="#dba86f"/><text x="3" y="4" text-anchor="middle" font-size="11" font-weight="650" fill="#8a5418">${count}</text></g>`;
     }
     layer.innerHTML=markers;
   }
